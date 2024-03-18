@@ -1,4 +1,5 @@
 import os
+
 from PIL import Image
 
 
@@ -36,7 +37,8 @@ def download_backgrounds(directory: str):
         storage={"root_dir": directory}
     )
 
-    search_queries = ['budapest', 'budapest parliament', 'buda castle', 'budapest st stephen basilica', 'budapest heroes square']
+    search_queries = ['budapest', 'budapest parliament', 'buda castle', 'budapest st stephen basilica',
+                      'budapest heroes square']
 
     for query in search_queries:
         crawler.crawl(keyword=query, max_num=10, file_idx_offset="auto")
@@ -56,4 +58,4 @@ def prepare():
 
 
 if __name__ == "__main__":
-    prepare()
+    statues_dict, bgs_dict = prepare()
