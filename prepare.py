@@ -1,6 +1,10 @@
 import os
 
 from PIL import Image
+from torch.utils.data import DataLoader
+from torchvision.transforms import transforms
+
+from ObjectDetectionDataset import ObjectDetectionDataset
 
 
 def load_images(directory: str) -> dict[str, Image.Image]:
@@ -57,9 +61,24 @@ def load_dicts():
     return statues_dict, bgs_dict
 
 
-def load_datasets():
-    pass
+def load_datasets(statues_dict: dict[str, Image.Image], bgs_dict: dict[str, Image.Image]):
+    transform = transforms.Compose([
+        transforms.ToTensor(),
+    ])
+
+    train_dataset = ObjectDetectionDataset(statues_dict, bgs_dict, dataset_type="train", transform=transform)
+    train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True, num_workers=8, pin_memory=True)
+
+    val_dataset = ObjectDetectionDataset(statues_dict, bgs_dict, dataset_type="val", transform=transform)
+    val_loader = DataLoader(val_dataset, batch_size=8, shuffle=False, num_workers=4, pin_memory=True)
+
+    test_dataset = ObjectDetectionDataset(statues_dict, bgs_dict, dataset_type="test", transform=transform)
+    test_loader = DataLoader(test_dataset, batch_size=4, shuffle=False, num_workers=2, pin_memory=True)
+
+    print("Data prepared")
+    return train_loader, val_loader, test_loader
 
 
 if __name__ == "__main__":
-    statues_dict, bgs_dict = load_dicts()
+    statues, bgs = load_dicts()
+    load_datasets(statues, bgs)
