@@ -44,7 +44,7 @@ def download_backgrounds(directory: str):
         crawler.crawl(keyword=query, max_num=10, file_idx_offset="auto")
 
 
-def prepare():
+def load_dicts():
     print("Preparing the data...")
 
     statues_dict = load_images("Statues")
@@ -57,5 +57,9 @@ def prepare():
     return statues_dict, bgs_dict
 
 
+def load_datasets():
+    pass
+
+
 if __name__ == "__main__":
-    statues_dict, bgs_dict = prepare()
+    statues_dict, bgs_dict = load_dicts()

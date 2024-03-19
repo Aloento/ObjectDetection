@@ -2,6 +2,7 @@ import os.path
 import random
 from typing import Optional, Callable
 
+import torch
 from PIL import Image
 from torch.utils.data import Dataset
 
@@ -91,11 +92,11 @@ class ObjectDetectionDataset(Dataset):
     def __len__(self):
         return self.num_samples
 
-    def __getitem__(self, idx):
-        img_path, bbox = self.data[idx]
+    def __getitem__(self, idx: int):
+        img_path, bbox = self.data[idx]  # type: str, list[float]
         img = Image.open(img_path).convert("RGB")
 
         if self.transform:
             img = self.transform(img)
 
-        return img, bbox
+        return img, torch.tensor(bbox, dtype=torch.float)
