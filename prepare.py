@@ -62,17 +62,13 @@ def load_dicts():
 
 
 def load_datasets(statues_dict: dict[str, Image.Image], bgs_dict: dict[str, Image.Image]):
-    transform = transforms.Compose([
-        transforms.ToTensor(),
-    ])
-
-    train_dataset = ObjectDetectionDataset(statues_dict, bgs_dict, dataset_type="train", transform=transform)
+    train_dataset = ObjectDetectionDataset(statues_dict, bgs_dict, dataset_type="train"  )
     train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True, num_workers=8, pin_memory=True)
 
-    val_dataset = ObjectDetectionDataset(statues_dict, bgs_dict, dataset_type="val", transform=transform)
+    val_dataset = ObjectDetectionDataset(statues_dict, bgs_dict, dataset_type="val"  )
     val_loader = DataLoader(val_dataset, batch_size=8, shuffle=False, num_workers=4, pin_memory=True)
 
-    test_dataset = ObjectDetectionDataset(statues_dict, bgs_dict, dataset_type="test", transform=transform)
+    test_dataset = ObjectDetectionDataset(statues_dict, bgs_dict, dataset_type="test"  )
     test_loader = DataLoader(test_dataset, batch_size=4, shuffle=False, num_workers=2, pin_memory=True)
 
     print("Data prepared")

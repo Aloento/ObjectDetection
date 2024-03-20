@@ -1,7 +1,9 @@
 import os.path
 import random
 from typing import Optional, Callable
-
+import albumentations as A
+import numpy as np
+from albumentations.pytorch.transforms import ToTensorV2
 import torch
 from PIL import Image
 from torch.utils.data import Dataset
@@ -13,18 +15,31 @@ class ObjectDetectionDataset(Dataset):
             statues_dict: dict[str, Image.Image],
             bgs_dict: dict[str, Image.Image],
             dataset_type: str = "train",
-            transform: Optional[Callable] = None,
             no_generate: bool = False
     ):
         self.statues_dict = statues_dict
         self.bgs_dict = bgs_dict
         self.dataset_type = dataset_type
-        self.transform = transform
         self.dataset_path = f'Dataset/{dataset_type}'
         self.data: list[tuple[str, list[float]]] = []
 
+        self.transform = A.Compose([
+            ToTensorV2()
+        ], bbox_params=A.BboxParams(format="yolo"))
+
         if dataset_type == "train":
             self.num_samples = 5000
+            self.transform = A.Compose([
+                A.HorizontalFlip(p=0.5),
+                A.VerticalFlip(p=0.5),
+                A.RandomRotate90(p=0.5),
+                A.RandomBrightnessContrast(p=0.2),
+                A.RandomGamma(p=0.2),
+                A.ColorJitter(p=0.2),
+                A.ElasticTransform(p=0.2),
+                A.GaussNoise(p=0.2),
+                ToTensorV2()
+            ], bbox_params=A.BboxParams(format="yolo"))
         elif dataset_type == "val":
             self.num_samples = 1000
         elif dataset_type == "test":
@@ -53,9 +68,20 @@ class ObjectDetectionDataset(Dataset):
             _, bg_img = random.choice(list(self.bgs_dict.items()))  # type: str, Image.Image
             _, statue_img = random.choice(list(self.statues_dict.items()))  # type: str, Image.Image
 
-            bg_width, bg_height = bg_img.size
-            statue_width, statue_height = statue_img.size
+            statue_height = random.randint(100, 150)
+            ratio = statue_height / statue_img.height
+            statue_width = round(statue_img.width * ratio)
+            statue_img = statue_img.resize((statue_width, statue_height))
 
+            if bg_img.width > 600 and bg_img.height > 600:
+                start_x = random.randint(0, bg_img.width - 600)
+                start_y = random.randint(0, bg_img.height - 600)
+                bg_img = bg_img.crop((start_x, start_y, start_x + 600, start_y + 600))
+            else:
+                bg_img = bg_img.resize((600, 600))
+
+            bg_width, bg_height = bg_img.size
+            assert bg_width == bg_height == 600, "Background image should be 600x600"
             max_x, max_y = bg_width - statue_width, bg_height - statue_height
 
             rand_x = random.randint(0, max_x)
@@ -92,11 +118,13 @@ class ObjectDetectionDataset(Dataset):
     def __len__(self):
         return self.num_samples
 
-    def __getitem__(self, idx: int):
+    def __getitem__(self, idx: int) -> tuple[torch.Tensor, torch.Tensor]:
         img_path, bbox = self.data[idx]  # type: str, list[float]
         img = Image.open(img_path).convert("RGB")
 
-        if self.transform:
-            img = self.transform(img)
+        img = np.array(img)
+        transformed = self.transform(image=img, bboxes=[bbox])
+        img = transformed["image"]
+        bbox = transformed["bboxes"][0]
 
         return img, torch.tensor(bbox, dtype=torch.float)
