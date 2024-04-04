@@ -2,7 +2,6 @@ import os
 
 from PIL import Image
 from torch.utils.data import DataLoader
-from torchvision.transforms import transforms
 
 from ObjectDetectionDataset import ObjectDetectionDataset
 
@@ -26,12 +25,14 @@ def load_images(directory: str) -> dict[str, Image.Image]:
 
 
 def download_backgrounds(directory: str):
-    if os.path.exists(directory) and os.listdir(directory):
-        print(f"Directory {directory} already exists and is not empty")
-        return
+    if os.path.exists(directory):
+        if os.listdir(directory):
+            print(f"Directory {directory} already exists and is not empty")
+            return
+    else:
+        os.makedirs(directory)
 
     print(f"Downloading backgrounds to {directory}")
-    os.makedirs(directory)
 
     from icrawler.builtin import GoogleImageCrawler
 
@@ -62,13 +63,13 @@ def load_dicts():
 
 
 def load_datasets(statues_dict: dict[str, Image.Image], bgs_dict: dict[str, Image.Image]):
-    train_dataset = ObjectDetectionDataset(statues_dict, bgs_dict, dataset_type="train"  )
+    train_dataset = ObjectDetectionDataset(statues_dict, bgs_dict, dataset_type="train")
     train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True, num_workers=8, pin_memory=True)
 
-    val_dataset = ObjectDetectionDataset(statues_dict, bgs_dict, dataset_type="val"  )
+    val_dataset = ObjectDetectionDataset(statues_dict, bgs_dict, dataset_type="val")
     val_loader = DataLoader(val_dataset, batch_size=8, shuffle=False, num_workers=4, pin_memory=True)
 
-    test_dataset = ObjectDetectionDataset(statues_dict, bgs_dict, dataset_type="test"  )
+    test_dataset = ObjectDetectionDataset(statues_dict, bgs_dict, dataset_type="test")
     test_loader = DataLoader(test_dataset, batch_size=4, shuffle=False, num_workers=2, pin_memory=True)
 
     print("Data prepared")
