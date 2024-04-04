@@ -28,39 +28,82 @@
 首先我们来设计网络结构，无需代码，尽可能详细
 ```
 
-## 输入层
+## 1. 输入层
 
-## 特征提取层
+## 2. 特征提取层
 
-### 标准卷积块
+### 2.1
 
 1. Conv2d
+
+   ```python
+   in_channels: 3
+   out_channels: 32
+   kernel_size: 3
+   stride: 1
+   padding: 1
+   ```
+
 2. BatchNorm2d
 3. PReLU
+4. 最大池化层
 
-有多个标准卷积块，随着网络加深，逐渐增加卷积层通道
+   ```python
+   kernel_size: 2
+   stride: 2
+   ```
 
-### DSC 卷积快
+### 2.2
 
 1. DSC v2
+
+   ```python
+   in_channels: 32
+   out_channels: 64
+   kernel_size: 3
+   stride: 1
+   padding: 1
+   ```
+
 2. 点卷积
 3. BatchNorm2d
 4. PReLU
+5. 最大池化层
 
-深度可分离卷积块用于减少参数量，提高计算效率，
+   ```python
+   kernel_size: 2
+   stride: 2
+   ```
+
+Depthwise Separable Convolution 用于减少参数量，提高计算效率，
 然后通过一个点卷积合并深度卷积的输出
 
-## 动态卷积层
+### 2.3
+
+1. Conv2d
+
+   ```python
+   in_channels: 64
+   out_channels: 128
+   kernel_size: 3
+   stride: 1
+   padding: 1
+   ```
+
+2. BatchNorm2d
+3. PReLU
+
+## 3. 动态卷积层
 
 Dynamic Convolution Network v2  
 引入 DCNv2 层来增加网络的适应性，让模型更好地适应雕像的形状变化和尺寸变化
 
-## CBAM 注意力模块
+## 4. CBAM 注意力模块
 
 1. Channel Attention
 2. Spatial Attention
 
-## 输出层
+## 5. 输出层
 
 使用一个或多个卷积层将特征图映射到目标检测框的表示上。
 最后一个卷积层的输出通道数应等于检测框参数的数量
