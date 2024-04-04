@@ -30,6 +30,14 @@
 
 ## 1. 输入层
 
+AdaptiveAvgPool2d
+
+```python
+output_size: 600
+```
+
+统一特征图的大小，使得网络能够接受不同大小的输入图片
+
 ## 2. 特征提取层
 
 ### 2.1
@@ -68,7 +76,7 @@
 2. 点卷积
 3. BatchNorm2d
 4. PReLU
-5. 最大池化层
+5. MaxPool2d
 
    ```python
    kernel_size: 2
@@ -80,19 +88,20 @@ Depthwise Separable Convolution 用于减少参数量，提高计算效率，
 
 ### 2.3
 
-1. Conv2d
+1. Dilated Conv2d
 
    ```python
    in_channels: 32
    out_channels: 64
    kernel_size: 3
    stride: 1
-   padding: 1
+   padding: 2
+   dilation: 2
    ```
 
 2. BatchNorm2d
 3. PReLU
-4. 最大池化层
+4. MaxPool2d
 
    ```python
    kernel_size: 2
@@ -120,12 +129,15 @@ Depthwise Separable Convolution 用于减少参数量，提高计算效率，
 
 ## 3. 增强层
 
-1. 动态卷积层
+1. DCN v2
 
    Dynamic Convolution Network v2  
-   引入 DCNv2 层来增加网络的适应性，让模型更好地适应雕像的形状变化和尺寸变化
+   来增加网络的适应性，让模型更好地适应雕像的形状变化和尺寸变化
 
-2. CBAM 注意力模块
+2. BatchNorm2d
+3. PReLU
+
+4. CBAM 块
 
    Channel Attention  
    Spatial Attention
