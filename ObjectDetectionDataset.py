@@ -38,6 +38,7 @@ class ObjectDetectionDataset(Dataset):
                 A.ColorJitter(p=0.2),
                 A.ElasticTransform(p=0.2),
                 A.GaussNoise(p=0.2),
+                A.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
                 ToTensorV2()
             ], bbox_params=A.BboxParams(format="yolo"))
         elif dataset_type == "val":
