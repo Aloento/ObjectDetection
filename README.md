@@ -10,13 +10,60 @@
 我还从 GoogleImageCrawler 中随机下载了 50 张大小不同的背景图片
 
 我定义了 ObjectDetectionDataset，它会随机的把雕像合成到背景图片中
-生成的图片全部为 600\*600，我还引入了 albumentations 数据增强
+生成的图片全部为 600*600，我还引入了 albumentations 数据增强
 有 getitem ：return img, bbox (YOLO 格式) 均为 Tensor
 
 我还有使用 ObjectDetectionDataset 的 train_loader, val_loader, test_loader
 
 接下来请帮助我设计一个简单 CNN 网络，接受不同大小的图片输入，输出物体检测的 bbox
-需要引入 CBAM 注意力，使用 AdamW，使用 YOLO 格式的 bbox，使用 YOLO Loss，使用 Adaptive Pooling，使用 PReLU
-
-首先我们来设计网络结构，不需要代码，尽可能详细
 ```
+
+# Network Structure
+
+```prompt
+使用 CBAM 注意力，使用 AdamW，
+使用 YOLO bbox，使用 YOLO Loss，
+使用 DCN v2，使用 PReLU，使用 DSC
+
+首先我们来设计网络结构，无需代码，尽可能详细
+```
+
+## 输入层
+
+## 特征提取层
+
+### 标准卷积块
+
+1. Conv2d
+2. BatchNorm2d
+3. PReLU
+
+有多个标准卷积块，随着网络加深，逐渐增加卷积层通道
+
+### DSC 卷积快
+
+1. DSC v2
+2. 点卷积
+3. BatchNorm2d
+4. PReLU
+
+深度可分离卷积块用于减少参数量，提高计算效率，
+然后通过一个点卷积合并深度卷积的输出
+
+## 动态卷积层
+
+Dynamic Convolution Network v2  
+引入 DCNv2 层来增加网络的适应性，让模型更好地适应雕像的形状变化和尺寸变化
+
+## CBAM 注意力模块
+
+1. Channel Attention
+2. Spatial Attention
+
+## 输出层
+
+使用一个或多个卷积层将特征图映射到目标检测框的表示上。
+最后一个卷积层的输出通道数应等于检测框参数的数量
+（每个框 4 个参数加上一个置信度，总共 5 个参数）。
+输出层的激活函数可以使用 sigmoid 函数，将输出限制在 0 到 1 之间，
+因为 YOLO 格式的 bbox 坐标是归一化后的。
