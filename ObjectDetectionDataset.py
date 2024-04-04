@@ -1,11 +1,11 @@
 import os.path
 import random
-from typing import Optional, Callable
+
 import albumentations as A
 import numpy as np
-from albumentations.pytorch.transforms import ToTensorV2
 import torch
 from PIL import Image
+from albumentations.pytorch.transforms import ToTensorV2
 from torch.utils.data import Dataset
 
 
