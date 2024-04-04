@@ -10,7 +10,7 @@
 我还从 GoogleImageCrawler 中随机下载了 50 张大小不同的背景图片
 
 我定义了 ObjectDetectionDataset，它会随机的把雕像合成到背景图片中
-生成的图片全部为 600*600，我还引入了 albumentations 数据增强
+生成的图片全部为 640*640 albumentations 数据增强
 有 getitem ：return img, bbox (YOLO 格式) 均为 Tensor
 
 我还有使用 ObjectDetectionDataset 的 train_loader, val_loader, test_loader
@@ -33,7 +33,7 @@
 AdaptiveAvgPool2d
 
 ```python
-output_size: 600
+output_size: 640
 ```
 
 统一特征图的大小，使得网络能够接受不同大小的输入图片

@@ -74,15 +74,15 @@ class ObjectDetectionDataset(Dataset):
             statue_width = round(statue_img.width * ratio)
             statue_img = statue_img.resize((statue_width, statue_height))
 
-            if bg_img.width > 600 and bg_img.height > 600:
-                start_x = random.randint(0, bg_img.width - 600)
-                start_y = random.randint(0, bg_img.height - 600)
-                bg_img = bg_img.crop((start_x, start_y, start_x + 600, start_y + 600))
+            if bg_img.width > 640 and bg_img.height > 640:
+                start_x = random.randint(0, bg_img.width - 640)
+                start_y = random.randint(0, bg_img.height - 640)
+                bg_img = bg_img.crop((start_x, start_y, start_x + 640, start_y + 640))
             else:
-                bg_img = bg_img.resize((600, 600))
+                bg_img = bg_img.resize((640, 640))
 
             bg_width, bg_height = bg_img.size
-            assert bg_width == bg_height == 600, "Background image should be 600x600"
+            assert bg_width == bg_height == 640, "Background image should be 640x640"
             max_x, max_y = bg_width - statue_width, bg_height - statue_height
 
             rand_x = random.randint(0, max_x)
