@@ -38,7 +38,7 @@
 
    ```python
    in_channels: 3
-   out_channels: 32
+   out_channels: 16
    kernel_size: 3
    stride: 1
    padding: 1
@@ -58,8 +58,8 @@
 1. DSC v2
 
    ```python
-   in_channels: 32
-   out_channels: 64
+   in_channels: 16
+   out_channels: 32
    kernel_size: 3
    stride: 1
    padding: 1
@@ -83,8 +83,8 @@ Depthwise Separable Convolution 用于减少参数量，提高计算效率，
 1. Conv2d
 
    ```python
-   in_channels: 64
-   out_channels: 128
+   in_channels: 32
+   out_channels: 64
    kernel_size: 3
    stride: 1
    padding: 1
@@ -92,18 +92,45 @@ Depthwise Separable Convolution 用于减少参数量，提高计算效率，
 
 2. BatchNorm2d
 3. PReLU
+4. 最大池化层
 
-## 3. 动态卷积层
+   ```python
+   kernel_size: 2
+   stride: 2
+   ```
 
-Dynamic Convolution Network v2  
-引入 DCNv2 层来增加网络的适应性，让模型更好地适应雕像的形状变化和尺寸变化
+5. CBAM 块
 
-## 4. CBAM 注意力模块
+### 2.4
 
-1. Channel Attention
-2. Spatial Attention
+1. DSC v2
 
-## 5. 输出层
+   ```python
+   in_channels: 64
+   out_channels: 128
+   kernel_size: 3
+   stride: 1
+   padding: 1
+   ```
+
+2. 点卷积
+3. BatchNorm2d
+4. PReLU
+5. DropBlock
+
+## 3. 增强层
+
+1. 动态卷积层
+
+   Dynamic Convolution Network v2  
+   引入 DCNv2 层来增加网络的适应性，让模型更好地适应雕像的形状变化和尺寸变化
+
+2. CBAM 注意力模块
+
+   Channel Attention  
+   Spatial Attention
+
+## 4. 输出层
 
 使用一个或多个卷积层将特征图映射到目标检测框的表示上。
 最后一个卷积层的输出通道数应等于检测框参数的数量
