@@ -121,10 +121,10 @@ Depthwise Separable Convolution 用于减少参数量，提高计算效率，
    padding: 1
    ```
 
-2. output += 卷积(ResidualBlock)
-3. BatchNorm2d
-4. PReLU
-5. DropBlock
+2. BatchNorm2d
+3. PReLU
+4. DropBlock
+5. output += 卷积(ResidualBlock)
 
 ## 2. 增强层
 

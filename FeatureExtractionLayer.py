@@ -37,7 +37,7 @@ class FEBlock1(nn.Module):
         )
 
         self.bn = nn.BatchNorm2d(num_features=self.out_channels)
-        self.lu = nn.PReLU()
+        self.lu = nn.PReLU(num_parameters=self.out_channels)
         self.pool = nn.MaxPool2d(kernel_size=2, stride=2)
 
     def forward(self, x):
@@ -77,12 +77,11 @@ class FEBlock2(nn.Module):
         )
 
         self.bn = nn.BatchNorm2d(num_features=self.out_channels)
-        self.lu = nn.PReLU()
+        self.lu = nn.PReLU(num_parameters=self.out_channels)
         self.pool = nn.MaxPool2d(kernel_size=2, stride=2)
 
     def forward(self, x):
         x = self.depthwise(x)
-        x = self.pointwise(x)
         x = self.bn(x)
         x = self.lu(x)
         x = self.pool(x)
@@ -125,7 +124,7 @@ class FEBlock3(nn.Module):
         )
 
         self.bn = nn.BatchNorm2d(num_features=self.out_channels)
-        self.lu = nn.PReLU()
+        self.lu = nn.PReLU(num_parameters=self.out_channels)
         self.pool = nn.MaxPool2d(kernel_size=2, stride=2)
         self.cbam = CBAMBlock(channel=self.out_channels, kernel_size=7)
 
@@ -143,18 +142,16 @@ class FEBlock4(nn.Module):
     """
     1. DSC
 
-       ```python
        in_channels: 64
        out_channels: 128
        kernel_size: 3
        stride: 1
        padding: 1
-       ```
 
-    2. output += Conv(ResidualBlock)
-    3. BatchNorm2d
-    4. PReLU
-    5. DropBlock
+    2. BatchNorm2d
+    3. PReLU
+    4. DropBlock
+    5. output += Conv(ResidualBlock)
     """
 
     def __init__(self):
@@ -168,7 +165,7 @@ class FEBlock4(nn.Module):
         )
 
         self.bn = nn.BatchNorm2d(num_features=self.out_channels)
-        self.lu = nn.PReLU()
+        self.lu = nn.PReLU(num_parameters=self.out_channels)
         self.dropblock = DropBlock2d(p=0.3, block_size=3)
 
         self.residual = nn.Conv2d(
@@ -180,11 +177,10 @@ class FEBlock4(nn.Module):
 
     def forward(self, x, residual):
         x = self.depthwise(x)
-
-        residual = self.residual(residual)
-        x += residual
-
         x = self.bn(x)
         x = self.lu(x)
         x = self.dropblock(x)
+
+        residual = self.residual(residual)
+        x += residual
         return x
