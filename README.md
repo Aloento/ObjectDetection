@@ -52,7 +52,7 @@ def __getitem__(self, idx: int) -> tuple[torch.Tensor, list[float], int]:
 
 2. BatchNorm2d
 3. PReLU
-4. 最大池化层
+4. MaxPool2d
 
    ```python
    kernel_size: 2
@@ -61,17 +61,25 @@ def __getitem__(self, idx: int) -> tuple[torch.Tensor, list[float], int]:
 
 ### 1.2
 
-1. DSC v2
+1. DSC
 
    ```python
    in_channels: 16
-   out_channels: 32
    kernel_size: 3
    stride: 1
    padding: 1
    ```
 
-2. 点卷积
+2. Pointwise
+
+   ```python
+   in_channels: 16
+   out_channels: 32
+   kernel_size: 1
+   stride: 1
+   padding: 0
+   ```
+
 3. BatchNorm2d
 4. PReLU
 5. MaxPool2d
@@ -112,17 +120,25 @@ Depthwise Separable Convolution 用于减少参数量，提高计算效率，
 
 ### 1.4
 
-1. DSC v2
+1. DSC
 
    ```python
    in_channels: 64
-   out_channels: 128
    kernel_size: 3
    stride: 1
    padding: 1
    ```
 
-2. 点卷积
+2. Pointwise
+
+   ```python
+   in_channels: 64
+   out_channels: 128
+   kernel_size: 1
+   stride: 1
+   padding: 0
+   ```
+
 3. output += 卷积(ResidualBlock)
 4. BatchNorm2d
 5. PReLU
