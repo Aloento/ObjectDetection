@@ -2,10 +2,9 @@
 
 ```prompt
 我正在为 Mihály Kolodko's Mini Statues 制作一个基于 CNN 的，接受不同图片大小输入的物体检测框架
-我不能使用基础模型和预训练模型，我需要自己从头实现一个简单网络
 
-有 17 种不同的雕像，每一种我有都一张图片，其中只有雕像本身，背景透明
-它们都有一个统一的标签 "MiniStatue"，而它们的文件名是它们的类别名
+有 17 种不同的雕像，每一种有都一张图片，其中只有雕像本身，背景透明
+它们的文件名是它们的类别名，模型需要能够区分这 17 种雕像
 
 我还从 BingImageCrawler 中随机下载了 50 张大小不同的背景图片
 
@@ -92,6 +91,8 @@ output_size: 640
 Depthwise Separable Convolution 用于减少参数量，提高计算效率，
 然后通过一个点卷积合并深度卷积的输出
 
+> ResidualBlock: 记录
+
 ### 2.3
 
 1. Dilated Conv2d
@@ -133,12 +134,22 @@ Depthwise Separable Convolution 用于减少参数量，提高计算效率，
 4. PReLU
 5. DropBlock
 
+> ResidualBlock: 写入
+
 ## 3. 增强层
 
 1. DCN v2
 
    Dynamic Convolution Network v2  
    来增加网络的适应性，让模型更好地适应雕像的形状变化和尺寸变化
+
+   ```python
+   in_channels: 128
+   out_channels: 128
+   kernel_size: 3
+   stride: 1
+   padding: 1
+   ```
 
 2. BatchNorm2d
 3. PReLU
@@ -152,5 +163,9 @@ Depthwise Separable Convolution 用于减少参数量，提高计算效率，
 
 使用卷积层将特征图映射到目标检测框的表示上。
 最后一个卷积层的输出通道数应等于检测框参数的数量
-（每个框 4 个参数加上一个置信度与类型和概率，总共 7 个参数）。
-输出层的激活函数可以使用 sigmoid 函数，将输出限制在 0 到 1 之间
+
+[x Center, y Center, Width, Height, Confidence, Class]  
+其中 Class 有 17 种，则通道数为 $5 + 17 = 22$
+
+对于前五个参数使用 sigmoid 函数，将输出限制在 0 到 1 之间  
+而 Class 使用 softmax 函数，将所有输出的和限制为 1
