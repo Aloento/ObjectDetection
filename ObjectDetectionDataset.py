@@ -69,7 +69,7 @@ class ObjectDetectionDataset(Dataset):
         progress_bar = tqdm(range(self.num_samples), desc=f"Generating {self.dataset_type}")
         for i in progress_bar:
             _, bg_img = random.choice(list(self.bgs_dict.items()))  # type: str, Image.Image
-            _, statue_img = random.choice(list(self.statues_dict.items()))  # type: str, Image.Image
+            statue_name, statue_img = random.choice(list(self.statues_dict.items()))  # type: str, Image.Image
 
             statue_height = random.randint(100, 150)
             ratio = statue_height / statue_img.height
@@ -97,6 +97,7 @@ class ObjectDetectionDataset(Dataset):
             combined_img.save(combined_img_path)
 
             bbox = [
+                statue_name,
                 (rand_x + statue_width / 2) / bg_width,
                 (rand_y + statue_height / 2) / bg_height,
                 statue_width / bg_width,
