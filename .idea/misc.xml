@@ -6,6 +6,9 @@
   <component name="ComposerSettings">
     <execution />
   </component>
+  <component name="PWA">
+    <option name="wasEnabledAtLeastOnce" value="true" />
+  </component>
   <component name="ProjectRootManager" version="2" languageLevel="JDK_21" default="true" project-jdk-name="Python 3.10" project-jdk-type="Python SDK">
     <output url="file://$PROJECT_DIR$/out" />
   </component>

@@ -1,8 +1,7 @@
 # Simplified Custom Object Detection
 
 ```prompt
-我正在为 Mihály Kolodko's Mini Statues 制作一个基于 CNN 的，
-接受不同图片大小输入的物体检测 PyTorch 框架
+我正在为 Mihály Kolodko's Mini Statues 制作一个基于 CNN 的物体检测 PyTorch 框架
 
 有 17 种不同的雕像，每一种有都一张图片，其中只有雕像本身，背景透明
 它们的文件名是它们的类别名，模型需要能够区分这 17 种雕像
@@ -10,16 +9,17 @@
 我还从 BingImageCrawler 中随机下载了 50 张大小不同的背景图片
 
 我定义了 ObjectDetectionDataset，它会随机的把雕像合成到背景图片中
-生成的图片全部为 640*640，使用了 albumentations 数据增强
+使用了 albumentations 数据增强，会把所有图片自动缩放到 640*640
 
 bbox = [
-   statue_id,
    (rand_x + statue_width / 2) / bg_width,
    (rand_y + statue_height / 2) / bg_height,
    statue_width / bg_width,
    statue_height / bg_height
 ]
-getitem ：return img, torch.tensor(bbox, dtype=torch.float)
+
+def __getitem__(self, idx: int) -> tuple[torch.Tensor, list[float], int]:
+    return img, bbox, statue_id
 
 还有使用 ObjectDetectionDataset 的 train_loader, val_loader, test_loader
 ```
@@ -36,19 +36,9 @@ getitem ：return img, torch.tensor(bbox, dtype=torch.float)
 
 > AdamW: `lr=1e-4, weight_decay=1e-3`
 
-## 1. 输入层
+## 1. 特征提取层
 
-AdaptiveAvgPool2d
-
-```python
-output_size: 640
-```
-
-统一特征图的大小，使得网络能够接受不同大小的输入图片
-
-## 2. 特征提取层
-
-### 2.1
+### 1.1
 
 1. Conv2d
 
@@ -69,7 +59,7 @@ output_size: 640
    stride: 2
    ```
 
-### 2.2
+### 1.2
 
 1. DSC v2
 
@@ -94,7 +84,7 @@ output_size: 640
 Depthwise Separable Convolution 用于减少参数量，提高计算效率，
 然后通过一个点卷积合并深度卷积的输出
 
-### 2.3
+### 1.3
 
 0. ResidualBlock = input
 
@@ -120,7 +110,7 @@ Depthwise Separable Convolution 用于减少参数量，提高计算效率，
 
 5. CBAM 块
 
-### 2.4
+### 1.4
 
 1. DSC v2
 
@@ -138,7 +128,7 @@ Depthwise Separable Convolution 用于减少参数量，提高计算效率，
 5. PReLU
 6. DropBlock
 
-## 3. 增强层
+## 2. 增强层
 
 1. DCN v2
 
@@ -161,7 +151,7 @@ Depthwise Separable Convolution 用于减少参数量，提高计算效率，
    Channel Attention  
    Spatial Attention
 
-## 4. 输出层
+## 3. 输出层
 
 1. Conv2d
 
@@ -184,7 +174,7 @@ Depthwise Separable Convolution 用于减少参数量，提高计算效率，
 
    非极大值抑制，去除重叠的检测框
 
-## 5. 后处理
+## 4. 后处理
 
 1. YOLO Loss
 
