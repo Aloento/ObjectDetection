@@ -30,8 +30,10 @@ getitem ：return img, torch.tensor(bbox, dtype=torch.float)
 使用 YOLO bbox，使用 YOLO Loss，
 使用 DCN v2，使用 PReLU，使用 DSC
 
-首先我们来设计网络结构，无需代码，尽可能详细
+首先我们来设计网络结构
 ```
+
+> AdamW: `lr=1e-4, weight_decay=1e-3`
 
 ## 1. 输入层
 
@@ -161,11 +163,29 @@ Depthwise Separable Convolution 用于减少参数量，提高计算效率，
 
 ## 4. 输出层
 
-使用卷积层将特征图映射到目标检测框的表示上。
-最后一个卷积层的输出通道数应等于检测框参数的数量
+1. Conv2d
 
-[x Center, y Center, Width, Height, Confidence, Class]  
-其中 Class 有 17 种，则通道数为 $5 + 17 = 22$
+   ```python
+   in_channels: 128
+   out_channels: 22
+   kernel_size: 1
+   stride: 1
+   padding: 0
+   ```
 
-对于前五个参数使用 sigmoid 函数，将输出限制在 0 到 1 之间  
-而 Class 使用 softmax 函数，将所有输出的和限制为 1
+   [x Center, y Center, Width, Height, Confidence, Class]  
+   其中 Class 有 17 种，则通道数为 $5 + 17 = 22$
+
+2. Sigmoid
+
+   对于所有参数使用 sigmoid 函数，将输出限制在 0 到 1 之间
+
+## 5. 后处理
+
+1. NMS
+
+   非极大值抑制，去除重叠的检测框
+
+2. YOLO Loss
+
+   计算预测框和真实框之间的损失
