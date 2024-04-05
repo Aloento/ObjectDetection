@@ -65,24 +65,15 @@ def __getitem__(self, idx: int) -> tuple[torch.Tensor, list[float], int]:
 
    ```python
    in_channels: 16
+   out_channels: 32
    kernel_size: 3
    stride: 1
    padding: 1
    ```
 
-2. Pointwise
-
-   ```python
-   in_channels: 16
-   out_channels: 32
-   kernel_size: 1
-   stride: 1
-   padding: 0
-   ```
-
-3. BatchNorm2d
-4. PReLU
-5. MaxPool2d
+2. BatchNorm2d
+3. PReLU
+4. MaxPool2d
 
    ```python
    kernel_size: 2
@@ -124,25 +115,16 @@ Depthwise Separable Convolution 用于减少参数量，提高计算效率，
 
    ```python
    in_channels: 64
+   out_channels: 128
    kernel_size: 3
    stride: 1
    padding: 1
    ```
 
-2. Pointwise
-
-   ```python
-   in_channels: 64
-   out_channels: 128
-   kernel_size: 1
-   stride: 1
-   padding: 0
-   ```
-
-3. output += 卷积(ResidualBlock)
-4. BatchNorm2d
-5. PReLU
-6. DropBlock
+2. output += 卷积(ResidualBlock)
+3. BatchNorm2d
+4. PReLU
+5. DropBlock
 
 ## 2. 增强层
 
