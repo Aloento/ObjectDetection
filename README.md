@@ -93,9 +93,9 @@ output_size: 640
 Depthwise Separable Convolution 用于减少参数量，提高计算效率，
 然后通过一个点卷积合并深度卷积的输出
 
-> ResidualBlock: 记录
-
 ### 2.3
+
+0. ResidualBlock = input
 
 1. Dilated Conv2d
 
@@ -132,11 +132,10 @@ Depthwise Separable Convolution 用于减少参数量，提高计算效率，
    ```
 
 2. 点卷积
-3. BatchNorm2d
-4. PReLU
-5. DropBlock
-
-> ResidualBlock: 写入
+3. output += 卷积(ResidualBlock)
+4. BatchNorm2d
+5. PReLU
+6. DropBlock
 
 ## 3. 增强层
 
