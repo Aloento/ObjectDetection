@@ -64,7 +64,7 @@ def load_dicts():
     return statues_dict, bgs_dict
 
 
-def load_datasets(statues_dict: dict[str, Image.Image], bgs_dict: dict[str, Image.Image]):
+def load_datasets(statues_dict: dict[str, tuple[int, Image.Image]], bgs_dict: dict[str, tuple[int, Image.Image]]):
     train_dataset = ObjectDetectionDataset(statues_dict, bgs_dict, dataset_type="train")
     train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True, num_workers=8, pin_memory=True)
 

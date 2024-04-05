@@ -1,7 +1,8 @@
 # Simplified Custom Object Detection
 
 ```prompt
-我正在为 Mihály Kolodko's Mini Statues 制作一个基于 CNN 的，接受不同图片大小输入的物体检测框架
+我正在为 Mihály Kolodko's Mini Statues 制作一个基于 CNN 的，
+接受不同图片大小输入的物体检测 PyTorch 框架
 
 有 17 种不同的雕像，每一种有都一张图片，其中只有雕像本身，背景透明
 它们的文件名是它们的类别名，模型需要能够区分这 17 种雕像
@@ -179,12 +180,28 @@ Depthwise Separable Convolution 用于减少参数量，提高计算效率，
 
    对于所有参数使用 sigmoid 函数，将输出限制在 0 到 1 之间
 
-## 5. 后处理
-
-1. NMS
+3. NMS
 
    非极大值抑制，去除重叠的检测框
 
-2. YOLO Loss
+## 5. 后处理
+
+1. YOLO Loss
 
    计算预测框和真实框之间的损失
+
+2. mAP
+
+   为每个类别计算 AP，然后对这些 AP 值取平均
+
+3. Precision & Recall
+
+   计算 Precision 和 Recall
+
+4. F1 Score
+
+   精确度和召回率的调和平均，是一个综合考虑查准率和查全率的评价指标
+
+5. TensorBoard
+
+   记录训练过程中的损失和评价指标
