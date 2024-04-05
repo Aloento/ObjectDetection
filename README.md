@@ -12,7 +12,7 @@
 生成的图片全部为 640*640，使用了 albumentations 数据增强
 
 bbox = [
-   statue_name,
+   statue_id,
    (rand_x + statue_width / 2) / bg_width,
    (rand_y + statue_height / 2) / bg_height,
    statue_width / bg_width,

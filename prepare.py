@@ -1,14 +1,15 @@
 import os
 
+import mmh3
 from PIL import Image
 from torch.utils.data import DataLoader
 
 from ObjectDetectionDataset import ObjectDetectionDataset
 
 
-def load_images(directory: str) -> dict[str, Image.Image]:
+def load_images(directory: str) -> dict[str, tuple[int, Image.Image]]:
     print("Loading images from", directory)
-    images_dict: dict[str, Image.Image] = {}
+    images_dict: dict[str, tuple[int, Image.Image]] = {}
 
     for root, dirs, files in os.walk(directory):
         for file in files:
@@ -17,7 +18,8 @@ def load_images(directory: str) -> dict[str, Image.Image]:
 
             try:
                 img = Image.open(file_path)
-                images_dict[filename] = img
+                class_id = mmh3.hash(filename)
+                images_dict[filename] = (class_id, img)
             except Exception as e:
                 print(f"Error loading image {file}: {e}")
 

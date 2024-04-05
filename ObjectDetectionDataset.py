@@ -13,8 +13,8 @@ from tqdm import tqdm
 class ObjectDetectionDataset(Dataset):
     def __init__(
             self,
-            statues_dict: dict[str, Image.Image],
-            bgs_dict: dict[str, Image.Image],
+            statues_dict: dict[str, tuple[int, Image.Image]],
+            bgs_dict: dict[str, tuple[int, Image.Image]],
             dataset_type: str = "train",
             no_generate: bool = False
     ):
@@ -68,8 +68,8 @@ class ObjectDetectionDataset(Dataset):
 
         progress_bar = tqdm(range(self.num_samples), desc=f"Generating {self.dataset_type}")
         for i in progress_bar:
-            _, bg_img = random.choice(list(self.bgs_dict.items()))  # type: str, Image.Image
-            statue_name, statue_img = random.choice(list(self.statues_dict.items()))  # type: str, Image.Image
+            _, bg_img = random.choice(list(self.bgs_dict.values()))  # type: int, Image.Image
+            statue_id, statue_img = random.choice(list(self.statues_dict.values()))  # type: int, Image.Image
 
             statue_height = random.randint(100, 150)
             ratio = statue_height / statue_img.height
@@ -97,7 +97,7 @@ class ObjectDetectionDataset(Dataset):
             combined_img.save(combined_img_path)
 
             bbox = [
-                statue_name,
+                statue_id,
                 (rand_x + statue_width / 2) / bg_width,
                 (rand_y + statue_height / 2) / bg_height,
                 statue_width / bg_width,
