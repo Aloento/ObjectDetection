@@ -34,9 +34,9 @@ def download_backgrounds(directory: str):
 
     print(f"Downloading backgrounds to {directory}")
 
-    from icrawler.builtin import GoogleImageCrawler
+    from icrawler.builtin import BingImageCrawler
 
-    crawler = GoogleImageCrawler(
+    crawler = BingImageCrawler(
         parser_threads=2,
         downloader_threads=4,
         storage={"root_dir": directory}

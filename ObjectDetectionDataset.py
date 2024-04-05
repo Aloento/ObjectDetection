@@ -7,6 +7,7 @@ import torch
 from PIL import Image
 from albumentations.pytorch.transforms import ToTensorV2
 from torch.utils.data import Dataset
+from tqdm import tqdm
 
 
 class ObjectDetectionDataset(Dataset):
@@ -65,7 +66,8 @@ class ObjectDetectionDataset(Dataset):
                 file_path = os.path.join(self.dataset_path, file)
                 os.remove(file_path)
 
-        for i in range(self.num_samples):
+        progress_bar = tqdm(range(self.num_samples), desc=f"Generating {self.dataset_type}")
+        for i in progress_bar:
             _, bg_img = random.choice(list(self.bgs_dict.items()))  # type: str, Image.Image
             _, statue_img = random.choice(list(self.statues_dict.items()))  # type: str, Image.Image
 
@@ -91,7 +93,7 @@ class ObjectDetectionDataset(Dataset):
             combined_img = bg_img.copy()
             combined_img.paste(statue_img, (rand_x, rand_y), statue_img)
 
-            combined_img_path = os.path.join(self.dataset_path, f"{i:05d}.jpg")
+            combined_img_path = os.path.join(self.dataset_path, f"{i:05d}.webp")
             combined_img.save(combined_img_path)
 
             bbox = [
@@ -108,7 +110,8 @@ class ObjectDetectionDataset(Dataset):
             self.data.append((combined_img_path, bbox))
 
     def load_data(self):
-        for i in range(self.num_samples):
+        progress_bar = tqdm(range(self.num_samples), desc=f"Loading {self.dataset_type}")
+        for i in progress_bar:
             img_path = os.path.join(self.dataset_path, f"{i:05d}.jpg")
             with open(os.path.join(self.dataset_path, f"{i:05d}.txt"), "r") as f:
                 bbox_str = f.read().strip()
