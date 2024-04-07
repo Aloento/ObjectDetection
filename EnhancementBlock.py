@@ -3,7 +3,7 @@ from torch import nn
 from torchvision.ops import DeformConv2d
 
 
-class EnhancementLayer(nn.Module):
+class EnhancementBlock(nn.Module):
     """
     1. DCN v2
 
@@ -19,7 +19,7 @@ class EnhancementLayer(nn.Module):
     """
 
     def __init__(self):
-        super(EnhancementLayer, self).__init__()
+        super(EnhancementBlock, self).__init__()
         self.in_channels = 128
         self.out_channels = 128
 
