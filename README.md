@@ -168,28 +168,29 @@ Depthwise Separable Convolution 用于减少参数量，提高计算效率，
 
    对于所有参数使用 sigmoid 函数，将输出限制在 0 到 1 之间
 
-3. NMS
-
-   非极大值抑制，去除重叠的检测框
-
 ## 4. 后处理
 
-1. YOLO Loss
+1. NMS
+
+   torchvision.ops  
+   非极大值抑制，去除重叠的检测框
+
+2. YOLO v5 Loss (ultralytics)
 
    计算预测框和真实框之间的损失
 
-2. mAP
+3. mAP
 
    为每个类别计算 AP，然后对这些 AP 值取平均
 
-3. Precision & Recall
+4. Precision & Recall
 
    计算 Precision 和 Recall
 
-4. F1 Score
+5. F1 Score
 
    精确度和召回率的调和平均，是一个综合考虑查准率和查全率的评价指标
 
-5. TensorBoard
+6. TensorBoard
 
    记录训练过程中的损失和评价指标
