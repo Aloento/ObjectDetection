@@ -20,14 +20,20 @@ class Model(nn.Module):
 
 if __name__ == "__main__":
     from prepare import prepare
+    from torch.cuda import is_available
+
+    device = "cuda" if is_available() else "cpu"
+    print("Using device", device)
 
     _, _, test_loader = prepare()
-    model = Model()
+    model = Model().to(device)
+    model.train()
 
     image, target = next(iter(test_loader))
-    output = model(image)
+    output = model(image.to(device))
 
     print("Output shape:", output.shape)
     print("Target shape:", target.shape)
 
-    loss = ComputeLoss()(output, target)
+    loss = ComputeLoss()(output, target.to(device))
+    print("Loss:", loss)
