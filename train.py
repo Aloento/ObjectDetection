@@ -8,12 +8,42 @@ from FeatureExtractionLayer import FeatureExtractionLayer
 from prepare import prepare
 
 
+class FocalLoss(nn.Module):
+    def __init__(self, gamma=1.5, alpha=0.25):
+        super(FocalLoss, self).__init__()
+        self.gamma = gamma
+        self.alpha = alpha
+        self.bce = nn.BCEWithLogitsLoss()
+
+    def forward(self, pred, target):
+        loss = self.bce(pred, target)
+
+        pred = torch.sigmoid(pred)
+        pt = pred * target + (1 - pred) * (1 - target)
+        alpha_factor = self.alpha * target + (1 - self.alpha) * (1 - target)
+        modulating_factor = (1 - pt).pow(self.gamma)
+        loss *= alpha_factor * modulating_factor
+
+        if self.bce.reduction == 'mean':
+            loss = loss.mean()
+        elif self.bce.reduction == 'sum':
+            loss = loss.sum()
+
+        return loss
+
+
+class ComputeLoss:
+    def __init__(self):
+        self.smooth_l1 = nn.SmoothL1Loss()
+        self.focal = FocalLoss()
+
+
 def train_epoch(model, dataloader, optimizer, device):
     # model.train()
     total_loss = 0
     loop = tqdm(dataloader, leave=True, position=1, desc="Training")
 
-    for images, targets, _ in loop:
+    for images, targets in loop:
         break
 
     return total_loss / len(dataloader)
@@ -51,7 +81,7 @@ def main():
         train_loss = train_epoch(model, train_loader, optimizer, device)
         val_loss = 0
 
-        # print(f"\nEpoch {epoch+1}/{epochs} - Training Loss: {train_loss:.4f}, Validation Loss: {val_loss:.4f}")
+        print(f"\nEpoch {epoch + 1}/{epochs} - Training Loss: {train_loss:.4f}, Validation Loss: {val_loss:.4f}")
 
 
 if __name__ == "__main__":

@@ -117,8 +117,7 @@ class ObjectDetectionDataset(Dataset):
             self.data.append((combined_img_path, bbox))
 
     def load_data(self):
-        progress_bar = tqdm(range(self.num_samples), desc=f"Loading {self.dataset_type}")
-        for i in progress_bar:
+        for i in range(self.num_samples):
             img_path = os.path.join(self.dataset_path, f"{i:05d}.webp")
             with open(os.path.join(self.dataset_path, f"{i:05d}.txt"), "r") as f:
                 bbox_str = f.read().strip()

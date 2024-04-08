@@ -15,11 +15,12 @@ bbox = [
    (rand_x + statue_width / 2) / bg_width,
    (rand_y + statue_height / 2) / bg_height,
    statue_width / bg_width,
-   statue_height / bg_height
+   statue_height / bg_height,
+   statue_id
 ]
 
-def __getitem__(self, idx: int) -> tuple[torch.Tensor, list[float], int]:
-    return img, bbox, statue_id
+def __getitem__(self, idx: int) -> tuple[torch.Tensor, list[float]]:
+    return img, bbox
 
 还有使用 ObjectDetectionDataset 的 train_loader, val_loader, test_loader
 ```
@@ -175,7 +176,7 @@ Depthwise Separable Convolution 用于减少参数量，提高计算效率，
    torchvision.ops  
    非极大值抑制，去除重叠的检测框
 
-2. YOLO v5 Loss (ultralytics)
+2. Loss (Focal + Smooth L1)
 
    计算预测框和真实框之间的损失
 
