@@ -23,7 +23,7 @@ class ObjectDetectionDataset(Dataset):
         self.bgs_dict = bgs_dict
         self.dataset_type = dataset_type
         self.dataset_path = f'Dataset/{dataset_type}'
-        self.data: list[tuple[str, int, list[float]]] = []
+        self.data: list[tuple[str, list[float]]] = []
         self.image_size = image_size
 
         self.transform = A.Compose([
@@ -106,14 +106,15 @@ class ObjectDetectionDataset(Dataset):
                 (rand_x + statue_width / 2) / bg_width,
                 (rand_y + statue_height / 2) / bg_height,
                 statue_width / bg_width,
-                statue_height / bg_height
+                statue_height / bg_height,
+                statue_id
             ]
-            bbox_str = f"{statue_id} " + " ".join(map(str, bbox))
+            bbox_str = " ".join(map(str, bbox))
 
             with open(os.path.join(self.dataset_path, f"{i:05d}.txt"), "w") as f:
                 f.write(bbox_str)
 
-            self.data.append((combined_img_path, statue_id, bbox))
+            self.data.append((combined_img_path, bbox))
 
     def load_data(self):
         progress_bar = tqdm(range(self.num_samples), desc=f"Loading {self.dataset_type}")
@@ -122,17 +123,14 @@ class ObjectDetectionDataset(Dataset):
             with open(os.path.join(self.dataset_path, f"{i:05d}.txt"), "r") as f:
                 bbox_str = f.read().strip()
 
-            txt = bbox_str.split()
-            statue_id = int(txt[0])
-            bbox = list(map(float, txt[1:]))
-
-            self.data.append((img_path, statue_id, bbox))
+            bbox = list(map(float, bbox_str.split()))
+            self.data.append((img_path, bbox))
 
     def __len__(self):
         return self.num_samples
 
-    def __getitem__(self, idx: int) -> tuple[torch.Tensor, list[float], int]:
-        img_path, statue_id, bbox = self.data[idx]
+    def __getitem__(self, idx: int) -> tuple[torch.Tensor, list[float]]:
+        img_path, bbox = self.data[idx]
         img = Image.open(img_path).convert("RGB")
         img = np.array(img)
 
@@ -140,4 +138,4 @@ class ObjectDetectionDataset(Dataset):
         img = transformed["image"]
         bbox = transformed["bboxes"][0]
 
-        return img, bbox, statue_id
+        return img, bbox
