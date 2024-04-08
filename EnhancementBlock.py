@@ -31,12 +31,21 @@ class EnhancementBlock(nn.Module):
             padding=1
         )
 
+        self.offset = nn.Conv2d(
+            in_channels=self.in_channels,
+            out_channels=2 * 3 * 3,
+            kernel_size=3,
+            stride=1,
+            padding=1
+        )
+
         self.bn = nn.BatchNorm2d(self.out_channels)
         self.lu = nn.PReLU(num_parameters=self.out_channels)
         self.cbam = CBAMBlock(channel=self.out_channels, kernel_size=7)
 
     def forward(self, x):
-        x = self.dcn(x)
+        offset = self.offset(x)
+        x = self.dcn(x, offset)
         x = self.bn(x)
         x = self.lu(x)
         x = self.cbam(x)

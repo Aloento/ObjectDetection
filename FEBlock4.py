@@ -33,12 +33,13 @@ class FEBlock4(nn.Module):
         self.lu = nn.PReLU(num_parameters=self.out_channels)
         self.dropblock = DropBlock2d(p=0.3, block_size=3)
 
-        self.residual = nn.Conv2d(
+        self.residual_conv = nn.Conv2d(
             in_channels=self.in_channels // 2,
             out_channels=self.out_channels,
             kernel_size=1,
             stride=1
         )
+        self.residual_pool = nn.AdaptiveAvgPool2d(output_size=(80, 80))
 
     def forward(self, x, residual):
         x = self.depthwise(x)
@@ -46,6 +47,9 @@ class FEBlock4(nn.Module):
         x = self.lu(x)
         x = self.dropblock(x)
 
-        residual = self.residual(residual)
+        residual = self.residual_conv(residual)
+        residual = self.residual_pool(residual)
+
+        assert x.shape == residual.shape, f"Output shape {x.shape} and residual shape {residual.shape} must be equal"
         x += residual
         return x

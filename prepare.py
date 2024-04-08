@@ -10,6 +10,16 @@ from ObjectDetectionDataset import ObjectDetectionDataset
 def load_images(directory: str) -> dict[str, tuple[int, Image.Image]]:
     print("Loading images from", directory)
     images_dict: dict[str, tuple[int, Image.Image]] = {}
+    filenames = []
+
+    for root, dirs, files in os.walk(directory):
+        for file in files:
+            file_path = os.path.join(root, file)
+            filename, _ = os.path.splitext(file)
+            filenames.append(filename)
+
+    filenames.sort()
+    name_to_id = {name: i for i, name in enumerate(filenames)}
 
     for root, dirs, files in os.walk(directory):
         for file in files:
@@ -18,7 +28,7 @@ def load_images(directory: str) -> dict[str, tuple[int, Image.Image]]:
 
             try:
                 img = Image.open(file_path)
-                class_id = mmh3.hash(filename)
+                class_id = name_to_id[filename]
                 images_dict[filename] = (class_id, img)
             except Exception as e:
                 print(f"Error loading image {file}: {e}")

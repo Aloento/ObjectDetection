@@ -131,10 +131,11 @@ class ObjectDetectionDataset(Dataset):
     def __getitem__(self, idx: int) -> tuple[torch.Tensor, list[float]]:
         img_path, bbox = self.data[idx]
         img = Image.open(img_path).convert("RGB")
-        img = np.array(img)
+        img = np.array(img, dtype=np.float32) / 255.0
 
         transformed = self.transform(image=img, bboxes=[bbox])
         img = transformed["image"]
         bbox = transformed["bboxes"][0]
+        bbox = torch.tensor(bbox, dtype=torch.float16)
 
         return img, bbox

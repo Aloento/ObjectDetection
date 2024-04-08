@@ -1,7 +1,7 @@
 # Simplified Custom Object Detection
 
 ```prompt
-我正在为 Mihály Kolodko's Mini Statues 制作一个基于 CNN 的物体检测 PyTorch 框架
+我正在为 Mihály Kolodko's Mini Statues 制作一个基于 CNN 的物体检测 TorchVision 框架
 
 有 17 种不同的雕像，每一种有都一张图片，其中只有雕像本身，背景透明
 它们的文件名是它们的类别名，模型需要能够区分这 17 种雕像
@@ -195,3 +195,14 @@ Depthwise Separable Convolution 用于减少参数量，提高计算效率，
 6. TensorBoard
 
    记录训练过程中的损失和评价指标
+
+# Training
+
+```prompt
+网络输入图片 torch.Size([4, 3, 640, 640])
+
+网络输出 torch.Size([4, 22, 80, 80])
+[x Center, y Center, Width, Height, Confidence, Class] 其中 Class 有 17 种
+
+bbox target torch.Size([4, 5])
+```

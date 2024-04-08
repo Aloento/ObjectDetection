@@ -1,41 +1,9 @@
 import torch
-from torch import nn, optim
-from torch.utils.tensorboard import SummaryWriter
+from torch import optim
 from tqdm import tqdm
 
-from DetectionLayer import DetectionLayer
-from FeatureExtractionLayer import FeatureExtractionLayer
+from Model import Model
 from prepare import prepare
-
-
-class FocalLoss(nn.Module):
-    def __init__(self, gamma=1.5, alpha=0.25):
-        super(FocalLoss, self).__init__()
-        self.gamma = gamma
-        self.alpha = alpha
-        self.bce = nn.BCEWithLogitsLoss()
-
-    def forward(self, pred, target):
-        loss = self.bce(pred, target)
-
-        pred = torch.sigmoid(pred)
-        pt = pred * target + (1 - pred) * (1 - target)
-        alpha_factor = self.alpha * target + (1 - self.alpha) * (1 - target)
-        modulating_factor = (1 - pt).pow(self.gamma)
-        loss *= alpha_factor * modulating_factor
-
-        if self.bce.reduction == 'mean':
-            loss = loss.mean()
-        elif self.bce.reduction == 'sum':
-            loss = loss.sum()
-
-        return loss
-
-
-class ComputeLoss:
-    def __init__(self):
-        self.smooth_l1 = nn.SmoothL1Loss()
-        self.focal = FocalLoss()
 
 
 def train_epoch(model, dataloader, optimizer, device):
@@ -47,19 +15,6 @@ def train_epoch(model, dataloader, optimizer, device):
         break
 
     return total_loss / len(dataloader)
-
-
-class Model(nn.Module):
-    def __init__(self):
-        super(Model, self).__init__()
-
-        self.fe = FeatureExtractionLayer()
-        self.out = DetectionLayer()
-
-    def forward(self, x):
-        x = self.fe(x)
-        x = self.out(x)
-        return x
 
 
 def main():
