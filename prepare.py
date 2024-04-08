@@ -78,6 +78,10 @@ def load_datasets(statues_dict: dict[str, tuple[int, Image.Image]], bgs_dict: di
     return train_loader, val_loader, test_loader
 
 
-if __name__ == "__main__":
+def prepare():
     statues, bgs = load_dicts()
-    load_datasets(statues, bgs)
+    return load_datasets(statues, bgs)
+
+
+if __name__ == "__main__":
+    prepare()

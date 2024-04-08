@@ -52,7 +52,7 @@ class ObjectDetectionDataset(Dataset):
         else:
             raise ValueError(f"Invalid dataset type: {dataset_type}")
 
-        if not os.path.exists(self.dataset_path) or len(os.listdir(self.dataset_path)) != self.num_samples:
+        if not os.path.exists(self.dataset_path) or len(os.listdir(self.dataset_path)) != self.num_samples * 2:
             print(f"Generating {self.num_samples} samples for the {dataset_type} dataset")
             if no_generate:
                 raise ValueError(f"Dataset {dataset_type} does not exist")
@@ -63,8 +63,10 @@ class ObjectDetectionDataset(Dataset):
 
     def generate_data(self):
         if not os.path.exists(self.dataset_path):
+            print(f"Creating directory {self.dataset_path}")
             os.makedirs(self.dataset_path)
         else:
+            print(f"Cleaning directory {self.dataset_path}")
             for file in os.listdir(self.dataset_path):
                 file_path = os.path.join(self.dataset_path, file)
                 os.remove(file_path)
@@ -116,7 +118,7 @@ class ObjectDetectionDataset(Dataset):
     def load_data(self):
         progress_bar = tqdm(range(self.num_samples), desc=f"Loading {self.dataset_type}")
         for i in progress_bar:
-            img_path = os.path.join(self.dataset_path, f"{i:05d}.jpg")
+            img_path = os.path.join(self.dataset_path, f"{i:05d}.webp")
             with open(os.path.join(self.dataset_path, f"{i:05d}.txt"), "r") as f:
                 bbox_str = f.read().strip()
 
