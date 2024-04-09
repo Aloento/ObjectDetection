@@ -5,6 +5,7 @@
 Dataset/
 Backgrounds/
 runs/
+checkpoints/
 
 # User-specific stuff
 .idea/**/workspace.xml

@@ -1,5 +1,3 @@
-import os
-
 import torch
 from torch import optim
 from torch.cuda.amp import GradScaler, autocast
@@ -8,6 +6,7 @@ from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
 
 from Model import Model
+from persist import save_checkpoint, load_checkpoint
 from prepare import prepare
 
 
@@ -74,31 +73,17 @@ def validate_epoch(
     return total_loss / len(dataloader)
 
 
-def save_checkpoint(model: Model, optimizer: optim.Optimizer, scheduler: optim.lr_scheduler, epoch: int):
-    torch.save({
-        "epoch": epoch,
-        "model_state_dict": model.state_dict(),
-        "optimizer_state_dict": optimizer.state_dict(),
-        "scheduler_state_dict": scheduler.state_dict()
-    }, f"checkpoints/checkpoint_{epoch}.pth")
+def evaluate_epoch(
+        model: Model,
+        dataloader: DataLoader,
+        device: torch.device,
+        writer: SummaryWriter,
+        epoch: int
+) -> float:
+    model.eval()
 
 
-def load_checkpoint(model: Model, optimizer: optim.Optimizer, scheduler: optim.lr_scheduler) -> int:
-    latest_epoch = 0
-
-    for checkpoint in os.listdir("checkpoints"):
-        checkpoint_epoch = int(checkpoint.split("_")[1].split(".")[0])
-        if checkpoint_epoch > latest_epoch:
-            latest_epoch = checkpoint_epoch
-
-    if latest_epoch > 0:
-        checkpoint = torch.load(f"checkpoints/checkpoint_{latest_epoch}.pth")
-        model.load_state_dict(checkpoint["model_state_dict"])
-        optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
-        scheduler.load_state_dict(checkpoint["scheduler_state_dict"])
-
-        print(f"Loaded checkpoint from epoch {latest_epoch}")
-        return latest_epoch + 1
+    return
 
 
 def main():
@@ -125,6 +110,7 @@ def main():
         val_loss = validate_epoch(model, val_loader, device, writer, epoch)
         scheduler.step(val_loss)
         writer.add_scalar("Loss/Validation Epoch", val_loss, epoch)
+        writer.add_scalar("Learning Rate", optimizer.param_groups[0]["lr"], epoch)
 
         print(f"\nEpoch {epoch + 1}/{epochs} - Training Loss: {train_loss:.4f}, Validation Loss: {val_loss:.4f}")
 
