@@ -9,22 +9,33 @@ class ComputeLoss(nn.Module):
         self.smooth_l1 = nn.SmoothL1Loss()
         self.focal = sigmoid_focal_loss
 
-    def forward(self, predictions: Tensor, targets: Tensor) -> Tensor:
-        pred_boxes = predictions[:, :4, :, :]
-        target_boxes = targets[:, :4].unsqueeze(-1).unsqueeze(-1).expand_as(pred_boxes)
+    def forward(self, predictions: Tensor, targets: Tensor):
+        pred_boxes = predictions[:, :4, 0, 0].squeeze(-1).squeeze(-1)
+        target_boxes = targets[:, :4]
         loss_boxes = self.smooth_l1(pred_boxes, target_boxes)
 
-        pred_conf = predictions[:, 4, :, :].unsqueeze(1)
+        pred_conf = predictions[:, 4, 0, 0].squeeze(-1).squeeze(-1)
         target_conf = ones_like(pred_conf)
         loss_conf = self.focal(pred_conf, target_conf, reduction="sum")
 
-        pred_cls = predictions[:, 5:, :, :]
+        pred_cls = predictions[:, 5:, 0, 0].squeeze(-1).squeeze(-1)
         target_cls = targets[:, 4].long()
-        target_cls = one_hot(target_cls, num_classes=pred_cls.shape[1]).float()
-        target_cls = target_cls.unsqueeze(-1).unsqueeze(-1).expand_as(pred_cls)
-        loss_cls = self.focal(pred_cls, target_cls, reduction="sum")
+        hot_target_cls = one_hot(target_cls, num_classes=pred_cls.shape[1]).float()
+        loss_cls = self.focal(pred_cls, hot_target_cls, reduction="sum")
 
         batch_size = predictions.shape[0]
         total_loss = (loss_boxes + loss_conf + loss_cls) / batch_size
 
-        return total_loss
+        pred = {
+            "boxes": pred_boxes,
+            "labels": pred_cls.argmax(dim=1),
+            "scores": pred_conf
+        }
+
+        targ = {
+            "boxes": target_boxes,
+            "labels": target_cls,
+            "scores": target_conf
+        }
+
+        return total_loss, pred, targ

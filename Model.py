@@ -13,12 +13,12 @@ class Model(nn.Module):
         self.out = DetectionLayer()
         self.loss = ComputeLoss()
 
-    def forward(self, images: Tensor, bboxes: Tensor) -> Tensor:
+    def forward(self, images: Tensor, bboxes: Tensor) -> (Tensor, dict[str, Tensor], dict[str, Tensor]):
         images = self.fe(images)
         images = self.out(images)
 
-        loss = self.loss(images, bboxes)
-        return loss
+        loss, pred, targ = self.loss(images, bboxes)
+        return loss, pred, targ
 
 
 if __name__ == "__main__":

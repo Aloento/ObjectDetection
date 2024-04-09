@@ -5,6 +5,7 @@ from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
 
+from DetectionMetric import DetectionMetric
 from Model import Model
 from persist import save_checkpoint, load_checkpoint
 from prepare import prepare
@@ -38,7 +39,7 @@ def train_epoch(
         scaler.update()
 
         total_loss += loss.item()
-        loop.set_postfix(loss=loss.item())
+        loop.set_postfix(loss=loss.item() * 1000)
 
         if i % 10 == 0:
             writer.add_scalar("Loss/Train Batch", loss.item(), epoch * len(dataloader) + i)
@@ -65,7 +66,7 @@ def validate_epoch(
             loss = model(images, bboxes)  # type: torch.Tensor
             total_loss += loss.item()
 
-            loop.set_postfix(loss=loss.item())
+            loop.set_postfix(loss=loss.item() * 1000)
 
             if i % 10 == 0:
                 writer.add_scalar("Loss/Validation Batch", loss.item(), epoch * len(dataloader) + i)
@@ -77,11 +78,27 @@ def evaluate_epoch(
         model: Model,
         dataloader: DataLoader,
         device: torch.device,
+        metric: DetectionMetric,
         writer: SummaryWriter,
         epoch: int
-) -> float:
+):
     model.eval()
+    loop = tqdm(dataloader, leave=True, position=3, desc="Evaluation")
 
+    with torch.no_grad():
+        for i, (images, bboxes) in enumerate(loop):
+            images = images.to(device)
+            bboxes = bboxes.to(device)
+
+            _, pred, targ = model(images, bboxes)
+            map_score, precision_score, recall_score, f1_score = metric(pred, targ)
+
+            loop.set_postfix(map=map_score, precision=precision_score, recall=recall_score, f1=f1_score)
+
+            writer.add_scalar("MAP", map_score, epoch * len(dataloader) + i)
+            writer.add_scalar("Precision", precision_score, epoch * len(dataloader) + i)
+            writer.add_scalar("Recall", recall_score, epoch * len(dataloader) + i)
+            writer.add_scalar("F1", f1_score, epoch * len(dataloader) + i)
 
     return
 
@@ -90,13 +107,14 @@ def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print("Using device", device)
 
-    train_loader, val_loader = prepare()
+    train_loader, val_loader, test_loader = prepare()
 
     model = Model().to(device)
     print(f'The model has {sum(p.numel() for p in model.parameters() if p.requires_grad):,} trainable parameters')
 
     optimizer = optim.AdamW(model.parameters(), lr=1e-4, weight_decay=1e-3)
     scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer)
+    metric = DetectionMetric()
     scaler = GradScaler()
 
     start_epoch = load_checkpoint(model, optimizer, scheduler)
@@ -113,6 +131,7 @@ def main():
         writer.add_scalar("Learning Rate", optimizer.param_groups[0]["lr"], epoch)
 
         print(f"\nEpoch {epoch + 1}/{epochs} - Training Loss: {train_loss:.4f}, Validation Loss: {val_loss:.4f}")
+        evaluate_epoch(model, test_loader, device, metric, writer, epoch)
 
         if epoch % 10 == 0:
             save_checkpoint(model, optimizer, scheduler, epoch)
