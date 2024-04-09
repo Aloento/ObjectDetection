@@ -81,11 +81,8 @@ def load_datasets(statues_dict: dict[str, tuple[int, Image.Image]], bgs_dict: di
     val_dataset = ObjectDetectionDataset(statues_dict, bgs_dict, dataset_type="val")
     val_loader = DataLoader(val_dataset, batch_size=8, shuffle=False, num_workers=4, pin_memory=True)
 
-    test_dataset = ObjectDetectionDataset(statues_dict, bgs_dict, dataset_type="test")
-    test_loader = DataLoader(test_dataset, batch_size=4, shuffle=False, num_workers=2, pin_memory=True)
-
     print("Data prepared")
-    return train_loader, val_loader, test_loader
+    return train_loader, val_loader
 
 
 def prepare():

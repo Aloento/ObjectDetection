@@ -11,11 +11,14 @@ class Model(nn.Module):
 
         self.fe = FeatureExtractionLayer()
         self.out = DetectionLayer()
+        self.loss = ComputeLoss()
 
-    def forward(self, x: Tensor) -> Tensor:
-        x = self.fe(x)
-        x = self.out(x)
-        return x
+    def forward(self, images: Tensor, bboxes: Tensor) -> Tensor:
+        images = self.fe(images)
+        images = self.out(images)
+
+        loss = self.loss(images, bboxes)
+        return loss
 
 
 if __name__ == "__main__":
@@ -25,15 +28,12 @@ if __name__ == "__main__":
     device = "cuda" if is_available() else "cpu"
     print("Using device", device)
 
-    _, _, test_loader = prepare()
+    _, val_loader = prepare()
     model = Model().to(device)
     model.train()
 
-    image, target = next(iter(test_loader))
-    output = model(image.to(device))
+    image, target = next(iter(val_loader))
+    comp_loss = model(image.to(device), target.to(device))
+    comp_loss.backward()
 
-    print("Output shape:", output.shape)
-    print("Target shape:", target.shape)
-
-    loss = ComputeLoss()(output, target.to(device))
-    print("Loss:", loss)
+    print("Loss:", comp_loss)
