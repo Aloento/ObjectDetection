@@ -4,6 +4,7 @@
 
 Dataset/
 Backgrounds/
+runs/
 
 # User-specific stuff
 .idea/**/workspace.xml
