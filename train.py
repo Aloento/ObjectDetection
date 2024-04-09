@@ -7,11 +7,16 @@ from prepare import prepare
 
 
 def train_epoch(model, dataloader, optimizer, device):
-    # model.train()
+    model.train()
     total_loss = 0
     loop = tqdm(dataloader, leave=True, position=1, desc="Training")
 
-    for images, targets in loop:
+    # torch.Size([batch_size, 3 RGB channels, 640 w, 640 h])
+    # torch.Size([num_of_images, (x Center, y Center, Width, Height, Class) 5 dims])
+    for images, targets in loop:  # type: torch.Tensor, torch.Tensor
+        images = images.to(device)
+        targets = targets.to(device)
+
         break
 
     return total_loss / len(dataloader)

@@ -1,5 +1,5 @@
 from fightingcv_attention.conv.DepthwiseSeparableConvolution import DepthwiseSeparableConvolution
-from torch import nn
+from torch import nn, Tensor
 
 
 class FEBlock2(nn.Module):
@@ -34,7 +34,7 @@ class FEBlock2(nn.Module):
         self.lu = nn.PReLU(num_parameters=self.out_channels)
         self.pool = nn.MaxPool2d(kernel_size=2, stride=2)
 
-    def forward(self, x):
+    def forward(self, x: Tensor) -> Tensor:
         x = self.depthwise(x)
         x = self.bn(x)
         x = self.lu(x)

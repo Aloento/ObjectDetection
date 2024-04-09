@@ -1,4 +1,4 @@
-from torch import nn
+from torch import nn, Tensor
 
 from FEBlock1 import FEBlock1
 from FEBlock2 import FEBlock2
@@ -14,7 +14,7 @@ class FeatureExtractionLayer(nn.Module):
         self.block3 = FEBlock3()
         self.block4 = FEBlock4()
 
-    def forward(self, x):
+    def forward(self, x: Tensor) -> Tensor:
         x = self.block1(x)
         x = self.block2(x)
         x, residual = self.block3(x)

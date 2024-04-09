@@ -1,5 +1,5 @@
 from fightingcv_attention.conv.DepthwiseSeparableConvolution import DepthwiseSeparableConvolution
-from torch import nn
+from torch import nn, Tensor
 from torchvision.ops import DropBlock2d
 
 
@@ -41,7 +41,7 @@ class FEBlock4(nn.Module):
         )
         self.residual_pool = nn.AdaptiveAvgPool2d(output_size=(80, 80))
 
-    def forward(self, x, residual):
+    def forward(self, x: Tensor, residual: Tensor) -> Tensor:
         x = self.depthwise(x)
         x = self.bn(x)
         x = self.lu(x)

@@ -1,4 +1,4 @@
-from torch import nn
+from torch import nn, Tensor
 
 from ComputeLoss import ComputeLoss
 from DetectionLayer import DetectionLayer
@@ -12,7 +12,7 @@ class Model(nn.Module):
         self.fe = FeatureExtractionLayer()
         self.out = DetectionLayer()
 
-    def forward(self, x):
+    def forward(self, x: Tensor) -> Tensor:
         x = self.fe(x)
         x = self.out(x)
         return x

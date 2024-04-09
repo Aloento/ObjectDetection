@@ -1,5 +1,5 @@
 from fightingcv_attention.attention.CBAM import CBAMBlock
-from torch import nn
+from torch import nn, Tensor
 
 
 class FEBlock3(nn.Module):
@@ -42,7 +42,7 @@ class FEBlock3(nn.Module):
         self.pool = nn.MaxPool2d(kernel_size=2, stride=2)
         self.cbam = CBAMBlock(channel=self.out_channels, kernel_size=7)
 
-    def forward(self, x):
+    def forward(self, x: Tensor) -> (Tensor, Tensor):
         residual = x
         x = self.conv(x)
         x = self.bn(x)

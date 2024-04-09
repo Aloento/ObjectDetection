@@ -1,5 +1,5 @@
 from fightingcv_attention.attention.CBAM import CBAMBlock
-from torch import nn
+from torch import nn, Tensor
 from torchvision.ops import DeformConv2d
 
 
@@ -43,7 +43,7 @@ class EnhancementBlock(nn.Module):
         self.lu = nn.PReLU(num_parameters=self.out_channels)
         self.cbam = CBAMBlock(channel=self.out_channels, kernel_size=7)
 
-    def forward(self, x):
+    def forward(self, x: Tensor) -> Tensor:
         offset = self.offset(x)
         x = self.dcn(x, offset)
         x = self.bn(x)

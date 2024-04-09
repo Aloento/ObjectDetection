@@ -1,4 +1,4 @@
-from torch import nn
+from torch import nn, Tensor
 
 
 class FEBlock1(nn.Module):
@@ -36,7 +36,7 @@ class FEBlock1(nn.Module):
         self.lu = nn.PReLU(num_parameters=self.out_channels)
         self.pool = nn.MaxPool2d(kernel_size=2, stride=2)
 
-    def forward(self, x):
+    def forward(self, x: Tensor) -> Tensor:
         x = self.conv(x)
         x = self.bn(x)
         x = self.lu(x)

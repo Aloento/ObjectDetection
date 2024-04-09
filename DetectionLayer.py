@@ -1,4 +1,4 @@
-from torch import nn
+from torch import nn, Tensor
 
 from EnhancementBlock import EnhancementBlock
 
@@ -34,7 +34,7 @@ class DetectionLayer(nn.Module):
 
         self.sigmoid = nn.Sigmoid()
 
-    def forward(self, x):
+    def forward(self, x: Tensor) -> Tensor:
         x = self.enhance(x)
         x = self.conv(x)
         x = self.sigmoid(x)

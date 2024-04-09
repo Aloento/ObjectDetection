@@ -199,10 +199,5 @@ Depthwise Separable Convolution 用于减少参数量，提高计算效率，
 # Training
 
 ```prompt
-网络输入图片 torch.Size([4, 3, 640, 640])
-
-网络输出 torch.Size([4, 22, 80, 80])
-[x Center, y Center, Width, Height, Confidence, Class] 其中 Class 有 17 种
-
-bbox target torch.Size([4, 5])
+class Model 和 class ComputeLoss 已经实现
 ```
