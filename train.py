@@ -11,14 +11,12 @@ from Model import Model
 from prepare import prepare
 
 
-scaler = GradScaler()
-
-
 def train_epoch(
         model: Model,
         dataloader: DataLoader,
         optimizer: optim.Optimizer,
         device: torch.device,
+        scaler: GradScaler,
         writer: SummaryWriter,
         epoch: int
 ) -> float:
@@ -76,6 +74,33 @@ def validate_epoch(
     return total_loss / len(dataloader)
 
 
+def save_checkpoint(model: Model, optimizer: optim.Optimizer, scheduler: optim.lr_scheduler, epoch: int):
+    torch.save({
+        "epoch": epoch,
+        "model_state_dict": model.state_dict(),
+        "optimizer_state_dict": optimizer.state_dict(),
+        "scheduler_state_dict": scheduler.state_dict()
+    }, f"checkpoints/checkpoint_{epoch}.pth")
+
+
+def load_checkpoint(model: Model, optimizer: optim.Optimizer, scheduler: optim.lr_scheduler) -> int:
+    latest_epoch = 0
+
+    for checkpoint in os.listdir("checkpoints"):
+        checkpoint_epoch = int(checkpoint.split("_")[1].split(".")[0])
+        if checkpoint_epoch > latest_epoch:
+            latest_epoch = checkpoint_epoch
+
+    if latest_epoch > 0:
+        checkpoint = torch.load(f"checkpoints/checkpoint_{latest_epoch}.pth")
+        model.load_state_dict(checkpoint["model_state_dict"])
+        optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
+        scheduler.load_state_dict(checkpoint["scheduler_state_dict"])
+
+        print(f"Loaded checkpoint from epoch {latest_epoch}")
+        return latest_epoch + 1
+
+
 def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print("Using device", device)
@@ -87,12 +112,14 @@ def main():
 
     optimizer = optim.AdamW(model.parameters(), lr=1e-4, weight_decay=1e-3)
     scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer)
+    scaler = GradScaler()
 
-    epochs = 100
+    start_epoch = load_checkpoint(model, optimizer, scheduler)
+    epochs = 1000
     writer = SummaryWriter()
 
-    for epoch in tqdm(range(epochs), desc="Epochs", position=0):
-        train_loss = train_epoch(model, train_loader, optimizer, device, writer, epoch)
+    for epoch in tqdm(range(start_epoch, epochs), desc="Epochs", position=0):
+        train_loss = train_epoch(model, train_loader, optimizer, device, scaler, writer, epoch)
         writer.add_scalar("Loss/Train Epoch", train_loss, epoch)
 
         val_loss = validate_epoch(model, val_loader, device, writer, epoch)
@@ -101,7 +128,9 @@ def main():
 
         print(f"\nEpoch {epoch + 1}/{epochs} - Training Loss: {train_loss:.4f}, Validation Loss: {val_loss:.4f}")
 
+        if epoch % 10 == 0:
+            save_checkpoint(model, optimizer, scheduler, epoch)
+
 
 if __name__ == "__main__":
-    os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "max_split_size_mb:128"
     main()
