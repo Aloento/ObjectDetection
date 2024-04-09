@@ -36,6 +36,28 @@ def train_epoch(
     return total_loss / len(dataloader)
 
 
+def validate_epoch(
+        model: Model,
+        dataloader: DataLoader,
+        device: torch.device
+) -> float:
+    model.eval()
+    total_loss = 0  # type: float
+    loop = tqdm(dataloader, leave=True, position=2, desc="Validation")
+
+    with torch.no_grad():
+        for images, bboxes in loop:  # type: torch.Tensor, torch.Tensor
+            images = images.to(device)
+            bboxes = bboxes.to(device)
+
+            loss = model(images, bboxes)  # type: torch.Tensor
+            total_loss += loss.item()
+
+            loop.set_postfix(loss=loss.item())
+
+    return total_loss / len(dataloader)
+
+
 def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print("Using device", device)
