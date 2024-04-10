@@ -28,22 +28,22 @@ class ObjectDetectionDataset(Dataset):
 
         self.transform = A.Compose([
             ToTensorV2()
-        ], bbox_params=A.BboxParams(format="yolo"))
+        ], bbox_params=A.BboxParams(format="albumentations"))
 
         if dataset_type == "train":
             self.num_samples = 5000
             self.transform = A.Compose([
-                A.HorizontalFlip(p=0.5),
-                A.VerticalFlip(p=0.5),
-                A.RandomRotate90(p=0.5),
-                A.RandomBrightnessContrast(p=0.2),
-                A.RandomGamma(p=0.2),
-                A.ColorJitter(p=0.2),
-                A.ElasticTransform(p=0.2),
-                A.GaussNoise(p=0.2),
-                A.Resize(image_size, image_size),
+                # A.HorizontalFlip(p=0.5),
+                # A.VerticalFlip(p=0.5),
+                # A.RandomRotate90(p=0.5),
+                # A.RandomBrightnessContrast(p=0.2),
+                # A.RandomGamma(p=0.2),
+                # A.ColorJitter(p=0.2),
+                # A.ElasticTransform(p=0.2),
+                # A.GaussNoise(p=0.2),
+                # A.Resize(image_size, image_size),
                 ToTensorV2()
-            ], bbox_params=A.BboxParams(format="yolo"))
+            ], bbox_params=A.BboxParams(format="albumentations"))
         elif dataset_type == "val":
             self.num_samples = 1000
         elif dataset_type == "test":
@@ -102,10 +102,10 @@ class ObjectDetectionDataset(Dataset):
             combined_img.save(combined_img_path)
 
             bbox = [
-                (rand_x + statue_width / 2) / bg_width,
-                (rand_y + statue_height / 2) / bg_height,
-                statue_width / bg_width,
-                statue_height / bg_height,
+                rand_x / bg_width,
+                rand_y / bg_height,
+                (rand_x + statue_width) / bg_width,
+                (rand_y + statue_height) / bg_height,
                 statue_id
             ]
             bbox_str = " ".join(map(str, bbox))
@@ -127,7 +127,7 @@ class ObjectDetectionDataset(Dataset):
     def __len__(self):
         return self.num_samples
 
-    def __getitem__(self, idx: int) -> tuple[torch.Tensor, list[float]]:
+    def __getitem__(self, idx: int) -> tuple[torch.Tensor, torch.Tensor]:
         img_path, bbox = self.data[idx]
         img = Image.open(img_path).convert("RGB")
         img = np.array(img, dtype=np.float32) / 255.0

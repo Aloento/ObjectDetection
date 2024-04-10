@@ -60,7 +60,7 @@ def validate_epoch(
     loop = tqdm(dataloader, leave=True, position=2, desc="Validation")
 
     with torch.no_grad():
-        for i, (images, bboxes) in enumerate(loop):  # type: torch.Tensor, torch.Tensor
+        for i, (images, bboxes) in enumerate(loop):  # type: int, (torch.Tensor, torch.Tensor)
             images = images.to(device)
             bboxes = bboxes.to(device)
 

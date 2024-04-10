@@ -1,26 +1,11 @@
 import torch
+from albumentations.core.bbox_utils import convert_bbox_from_albumentations
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
 
 from DetectionMetric import DetectionMetric
 from Model import Model
-
-
-def convert_bbox(tensor, bg_width=640, bg_height=640):
-    tensor = tensor.unsqueeze(0)
-
-    x_centers = tensor[:, 0] * bg_width
-    y_centers = tensor[:, 1] * bg_height
-    widths = tensor[:, 2] * bg_width
-    heights = tensor[:, 3] * bg_height
-
-    xmin = x_centers - widths / 2
-    ymin = y_centers - heights / 2
-    xmax = x_centers + widths / 2
-    ymax = y_centers + heights / 2
-
-    return torch.stack([xmin, ymin, xmax, ymax], dim=1)
 
 
 def evaluate_epoch(
@@ -83,15 +68,27 @@ def evaluate_epoch(
             last_prediction = pred
 
     pred_box = last_prediction["boxes"][0]
-    pred_box_xyxy = convert_bbox(pred_box)
+    pred_box_xyxy = convert_bbox_from_albumentations(
+        bbox=pred_box,
+        target_format='pascal_voc',
+        rows=640,
+        cols=640
+    )
+
     pred_label = last_prediction["labels"][0].item()
     pred_score = last_prediction["scores"][0].item()
 
     target_box = last_target["boxes"][0]
-    target_box_xyxy = convert_bbox(target_box)
-    target_label = last_target["labels"][0].item()
+    target_box_xyxy = convert_bbox_from_albumentations(
+        bbox=target_box,
+        target_format='pascal_voc',
+        rows=640,
+        cols=640
+    )
 
-    box_xyxy = torch.cat((pred_box_xyxy, target_box_xyxy), 0)
+    box_xyxy = torch.tensor([pred_box_xyxy, target_box_xyxy])
+
+    target_label = last_target["labels"][0].item()
 
     writer.add_image_with_boxes(
         tag='Prediction',
