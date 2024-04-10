@@ -4,22 +4,10 @@ from EnhancementBlock import EnhancementBlock
 
 
 class DetectionLayer(nn.Module):
-    """
-    1. Conv2d
-
-       in_channels: 128
-       out_channels: 22
-       kernel_size: 1
-       stride: 1
-       padding: 0
-
-       [x Center, y Center, Width, Height, Confidence, Class]
-    """
-    def __init__(self):
+    def __init__(self, in_channels: int):
         super(DetectionLayer, self).__init__()
-        self.enhance = EnhancementBlock()
+        self.enhance = EnhancementBlock(in_channels)
 
-        self.in_channels = 128
         self.out_channels = 22
 
         self.conv = nn.Conv2d(
