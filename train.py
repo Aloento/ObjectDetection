@@ -27,7 +27,7 @@ def train_epoch(
 
     # torch.Size([batch_size, 3 RGB channels, 640 w, 640 h])
     # torch.Size([num_of_images, (x Center, y Center, Width, Height, Class) 5 dims])
-    for i, (images, bboxes) in enumerate(loop):  # type: torch.Tensor, torch.Tensor
+    for i, (images, bboxes) in enumerate(loop):  # type: int, (torch.Tensor, torch.Tensor)
         images = images.to(device)
         bboxes = bboxes.to(device)
 

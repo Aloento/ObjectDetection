@@ -14,7 +14,6 @@ def load_images(directory: str) -> dict[str, tuple[int, Image.Image]]:
 
     for root, dirs, files in os.walk(directory):
         for file in files:
-            file_path = os.path.join(root, file)
             filename, _ = os.path.splitext(file)
             filenames.append(filename)
 
