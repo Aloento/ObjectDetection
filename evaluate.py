@@ -58,11 +58,11 @@ def evaluate_epoch(
             writer.add_scalar("Metrics/F1", f1_score, epoch * len(dataloader) + i)
 
             last_image = images[0]
-            last_prediction = pred[0]
+            last_prediction = pred
 
-    pred_box = last_prediction["boxes"]
-    pred_label = last_prediction["labels"]
-    pred_score = last_prediction["scores"]
+    pred_box = last_prediction["boxes"][0]
+    pred_label = last_prediction["labels"][0]
+    pred_score = last_prediction["scores"][0]
     pred_box_xyxy = box_convert(pred_box, 'cxcywh', 'xyxy')
 
     writer.add_image_with_boxes(
