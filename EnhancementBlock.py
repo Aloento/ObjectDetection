@@ -26,6 +26,7 @@ class EnhancementBlock(nn.Module):
         self.bn = nn.BatchNorm2d(in_channels)
         self.lu = nn.PReLU(num_parameters=in_channels)
         self.cbam = CBAMBlock(channel=in_channels, kernel_size=7)
+        self.avg_pool = nn.AdaptiveAvgPool2d((1, 1))
 
     def forward(self, x: Tensor) -> Tensor:
         offset = self.offset(x)
@@ -33,4 +34,5 @@ class EnhancementBlock(nn.Module):
         x = self.bn(x)
         x = self.lu(x)
         x = self.cbam(x)
+        x = self.avg_pool(x)
         return x
