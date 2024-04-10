@@ -2,12 +2,13 @@ from torch import nn, Tensor
 from torch.nn import Sequential
 from torchvision.ops import DropBlock2d
 
+from EnhancementBlock import EnhancementBlock
 from ResBlock import ResBlock
 
 
-class FeatureExtractionLayer(nn.Module):
+class FeatureLayer(nn.Module):
     def __init__(self):
-        super(FeatureExtractionLayer, self).__init__()
+        super(FeatureLayer, self).__init__()
         self.in_channels = 64
 
         self.input_conv = nn.Conv2d(
@@ -22,12 +23,15 @@ class FeatureExtractionLayer(nn.Module):
         self.lu = nn.PReLU(num_parameters=self.in_channels)
         self.max_pool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
 
+        self.enhance = EnhancementBlock(self.in_channels)
+
         self.res_block1 = self.make_res_block(self.in_channels, 1)
         self.res_block2 = self.make_res_block(128, 2)
+
+        self.dropblock = DropBlock2d(block_size=3, p=0.3)
+
         self.res_block3 = self.make_res_block(256, 2)
         self.res_block4 = self.make_res_block(512, 2)
-
-        self.dropblock = DropBlock2d(block_size=3, p=0.1)
 
     def make_res_block(self, out_channels: int, stride: int) -> Sequential:
         strides = [stride, 1]
@@ -44,6 +48,8 @@ class FeatureExtractionLayer(nn.Module):
         out = self.input_bn(out)
         out = self.lu(out)
         out = self.max_pool(out)
+
+        out = self.enhance(out)
 
         out = self.res_block1(out)
         out = self.res_block2(out)

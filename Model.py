@@ -1,16 +1,16 @@
 from torch import nn, Tensor
 
 from ComputeLoss import ComputeLoss
-from DetectionLayer import DetectionLayer
-from FeatureExtractionLayer import FeatureExtractionLayer
+from FCLayer import FCLayer
+from FeatureLayer import FeatureLayer
 
 
 class Model(nn.Module):
     def __init__(self):
         super(Model, self).__init__()
 
-        self.fe = FeatureExtractionLayer()
-        self.out = DetectionLayer(512)
+        self.fe = FeatureLayer()
+        self.out = FCLayer(512)
         self.loss = ComputeLoss()
 
     def forward(self, predictions: Tensor, bboxes: Tensor) -> (Tensor, dict[str, Tensor], dict[str, Tensor]):
