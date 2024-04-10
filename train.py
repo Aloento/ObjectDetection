@@ -33,23 +33,20 @@ def train_epoch(
 
         optimizer.zero_grad()
         with autocast():
-            (loss_box, loss_conf, loss_cls), _ = model(images, bboxes)
+            loss_cls, _ = model(images, bboxes)
 
-        loss = (loss_box + loss_conf + loss_cls) / 3
-
-        scaler.scale(loss).backward()
+        scaler.scale(loss_cls).backward()
         scaler.step(optimizer)
         scaler.update()
 
-        total_loss += loss.item()
-        loop.set_postfix(loss=loss.item())
+        total_loss += loss_cls.item()
+        loop.set_postfix(loss=loss_cls.item())
 
         current = epoch * len(dataloader) + i
 
         if i % 10 == 0:
-            writer.add_scalar("Loss/Train Batch", loss.item(), current)
-            writer.add_scalar("Loss/Box", loss_box.item(), current)
-            writer.add_scalar("Loss/Confidence", loss_conf.item(), current)
+            # writer.add_scalar("Loss/Train Batch", loss.item(), current)
+            # writer.add_scalar("Loss/Box", loss_box.item(), current)
             writer.add_scalar("Loss/Class", loss_cls.item(), current)
 
     return total_loss / len(dataloader)
@@ -71,14 +68,14 @@ def validate_epoch(
             images = images.to(device)
             bboxes = bboxes.to(device)
 
-            (loss_box, loss_conf, loss_cls), _ = model(images, bboxes)
+            # (loss_box, loss_conf, loss_cls), _ = model(images, bboxes)
+            loss_cls, _ = model(images, bboxes)
 
-            loss = (loss_box + loss_conf + loss_cls) / 3
-            total_loss += loss.item()
-            loop.set_postfix(loss=loss.item())
+            total_loss += loss_cls.item()
+            loop.set_postfix(loss=loss_cls.item())
 
             if i % 10 == 0:
-                writer.add_scalar("Loss/Validation Batch", loss.item(), epoch * len(dataloader) + i)
+                writer.add_scalar("Loss/Validation Batch", loss_cls.item(), epoch * len(dataloader) + i)
 
     return total_loss / len(dataloader)
 

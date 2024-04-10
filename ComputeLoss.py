@@ -1,5 +1,4 @@
-from torch import nn, ones_like, Tensor
-from torch.nn.functional import one_hot
+from torch import nn, Tensor
 from torchvision.ops import sigmoid_focal_loss
 
 
@@ -11,29 +10,21 @@ class ComputeLoss(nn.Module):
         self.focal = sigmoid_focal_loss
 
     def forward(self, predictions: Tensor, targets: Tensor):
-        pred_box = predictions[:, :4]
         target_box = targets[:, :4]
-        loss_box = self.l1(pred_box, target_box)
+        target_cls = targets[:, 5:]
 
-        pred_conf = predictions[:, 4]
-        target_conf = ones_like(pred_conf)
-        loss_conf = self.bce(pred_conf, target_conf)
-
-        pred_cls = predictions[:, 5:]
-        target_cls = targets[:, 4].long()
-        hot_target_cls = one_hot(target_cls, num_classes=17).float()
-        loss_cls = self.focal(pred_cls, hot_target_cls, reduction="mean")
+        loss_cls = self.focal(predictions, target_cls, reduction="mean")
 
         pred = {
-            "boxes": pred_box,
-            "labels": pred_cls.argmax(dim=1),
-            "scores": pred_conf
+            "boxes": target_box,
+            "labels": predictions.argmax(dim=1),
+            "scores": predictions.max(dim=1).values
         }
 
         targ = {
             "boxes": target_box,
-            "labels": target_cls,
-            "scores": target_conf
+            "labels": targets[:, 4],
+            "scores": target_cls.max(dim=1).values
         }
 
-        return (loss_box, loss_conf, loss_cls), (pred, targ)
+        return loss_cls, (pred, targ)

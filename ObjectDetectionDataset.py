@@ -6,6 +6,7 @@ import numpy as np
 import torch
 from PIL import Image
 from albumentations.pytorch.transforms import ToTensorV2
+from torch.nn.functional import one_hot
 from torch.utils.data import Dataset
 from tqdm import tqdm
 
@@ -74,12 +75,6 @@ class ObjectDetectionDataset(Dataset):
         progress_bar = tqdm(range(self.num_samples), desc=f"Generating {self.dataset_type}")
         for i in progress_bar:
             _, bg_img = random.choice(list(self.bgs_dict.values()))  # type: int, Image.Image
-            statue_id, statue_img = random.choice(list(self.statues_dict.values()))  # type: int, Image.Image
-
-            statue_height = random.randint(100, 150)
-            ratio = statue_height / statue_img.height
-            statue_width = round(statue_img.width * ratio)
-            statue_img = statue_img.resize((statue_width, statue_height))
 
             if bg_img.width > self.image_size and bg_img.height > self.image_size:
                 start_x = random.randint(0, bg_img.width - self.image_size)
@@ -87,6 +82,23 @@ class ObjectDetectionDataset(Dataset):
                 bg_img = bg_img.crop((start_x, start_y, start_x + self.image_size, start_y + self.image_size))
             else:
                 bg_img = bg_img.resize((self.image_size, self.image_size))
+
+            if random.random() < 0.2:
+                bg_path = os.path.join(self.dataset_path, f"{i:05d}.webp")
+                bg_img.save(bg_path)
+
+                with open(os.path.join(self.dataset_path, f"{i:05d}.txt"), "w") as f:
+                    f.write("0 0 0 0 0")
+
+                self.data.append((bg_path, [0, 0, 0, 0, 0]))
+                continue
+
+            statue_id, statue_img = random.choice(list(self.statues_dict.values()))  # type: int, Image.Image
+
+            statue_height = random.randint(100, 150)
+            ratio = statue_height / statue_img.height
+            statue_width = round(statue_img.width * ratio)
+            statue_img = statue_img.resize((statue_width, statue_height))
 
             bg_width, bg_height = bg_img.size
             assert bg_width == bg_height == self.image_size, \
@@ -130,12 +142,21 @@ class ObjectDetectionDataset(Dataset):
 
     def __getitem__(self, idx: int) -> tuple[torch.Tensor, torch.Tensor]:
         img_path, bbox = self.data[idx]
+        no_obj = sum(bbox) == 0
+
         img = Image.open(img_path).convert("RGB")
         img = np.array(img, dtype=np.float32) / 255.0
 
-        transformed = self.transform(image=img, bboxes=[bbox])
+        transformed = self.transform(image=img, bboxes=[[0, 0, 1, 1] if no_obj else bbox])
         img = transformed["image"]
+
         bbox = transformed["bboxes"][0]
+        one_hot_id = np.zeros(17) if no_obj else one_hot(
+            torch.tensor(bbox[4]).long(),
+            num_classes=17
+        )
+
+        bbox = np.append(bbox, one_hot_id)
         bbox = torch.tensor(bbox, dtype=torch.float16)
 
         return img, bbox

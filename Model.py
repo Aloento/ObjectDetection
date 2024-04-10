@@ -34,14 +34,11 @@ if __name__ == "__main__":
     model.train()
 
     image, target = next(iter(test_loader))
-    (loss_box, loss_conf, loss_cls), (pred, targ) = model(image.to(device), target.to(device))
+    loss_cls, (pred, targ) = model(image.to(device), target.to(device))
+    loss_cls.backward()
 
-    comp_loss = (loss_box + loss_conf + loss_cls) / image.shape[0]
-    comp_loss.backward()
-
-    print("Loss:", comp_loss)
-    print("Loss Box:", loss_box)
-    print("Loss Confidence:", loss_conf)
+    # print("Loss:", comp_loss)
+    # print("Loss Box:", loss_box)
     print("Loss Class:", loss_cls)
 
     model.eval()
