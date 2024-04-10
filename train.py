@@ -35,7 +35,7 @@ def train_epoch(
         with autocast():
             (loss_box, loss_conf, loss_cls), _ = model(images, bboxes)
 
-        loss = (loss_box + loss_conf + loss_cls) / images.shape[0]
+        loss = (loss_box + loss_conf + loss_cls) / 3
 
         scaler.scale(loss).backward()
         scaler.step(optimizer)
@@ -73,7 +73,7 @@ def validate_epoch(
 
             (loss_box, loss_conf, loss_cls), _ = model(images, bboxes)
 
-            loss = (loss_box + loss_conf + loss_cls) / images.shape[0]
+            loss = (loss_box + loss_conf + loss_cls) / 3
             total_loss += loss.item()
             loop.set_postfix(loss=loss.item())
 
@@ -92,7 +92,7 @@ def main():
     model = Model().to(device)
     print(f'The model has {sum(p.numel() for p in model.parameters() if p.requires_grad):,} trainable parameters')
 
-    optimizer = optim.AdamW(model.parameters(), lr=1e-4, weight_decay=1e-3)
+    optimizer = optim.AdamW(model.parameters())
     scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer)
     metric = DetectionMetric().to(device)
     scaler = GradScaler()
@@ -105,7 +105,7 @@ def main():
         train_loss = train_epoch(model, train_loader, optimizer, device, scaler, writer, epoch)
 
         val_loss = validate_epoch(model, val_loader, device, writer, epoch)
-        scheduler.step(val_loss, epoch)
+        scheduler.step(val_loss)
 
         writer.add_scalar("Learning Rate", optimizer.param_groups[0]["lr"], epoch)
 

@@ -144,11 +144,7 @@ Depthwise Separable Convolution 用于减少参数量，提高计算效率，
 
 2. BatchNorm2d
 3. PReLU
-
-4. CBAM 块
-
-   Channel Attention  
-   Spatial Attention
+4. CBAM
 
 ## 3. 输出层
 
@@ -167,8 +163,6 @@ Depthwise Separable Convolution 用于减少参数量，提高计算效率，
 
 2. Sigmoid
 
-   对于所有参数使用 sigmoid 函数，将输出限制在 0 到 1 之间
-
 ## 4. 后处理
 
 1. NMS
@@ -176,7 +170,7 @@ Depthwise Separable Convolution 用于减少参数量，提高计算效率，
    torchvision.ops  
    非极大值抑制，去除重叠的检测框
 
-2. Loss (Focal + Smooth L1)
+2. Loss (Focal + L1)
 
    计算预测框和真实框之间的损失
 
