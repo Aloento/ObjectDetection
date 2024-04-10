@@ -1,5 +1,6 @@
 from fightingcv_attention.conv.DepthwiseSeparableConvolution import DepthwiseSeparableConvolution
 from torch import nn, Tensor
+from torchvision.ops import DeformConv2d
 
 
 class ResBlock(nn.Module):
@@ -16,13 +17,20 @@ class ResBlock(nn.Module):
         self.bn1 = nn.BatchNorm2d(num_features=out_channels)
         self.lu1 = nn.PReLU(num_parameters=out_channels)
 
-        self.conv2 = nn.Conv2d(
+        self.conv2 = DeformConv2d(
             in_channels=out_channels,
             out_channels=out_channels,
             kernel_size=3,
-            padding=1,
-            bias=False
+            padding=1
         )
+
+        self.offset = nn.Conv2d(
+            in_channels=out_channels,
+            out_channels=2 * 3 * 3,
+            kernel_size=3,
+            padding=1
+        )
+
         self.bn2 = nn.BatchNorm2d(num_features=out_channels)
         self.lu2 = nn.PReLU(num_parameters=out_channels)
 
@@ -44,7 +52,9 @@ class ResBlock(nn.Module):
         out = self.bn1(out)
         out = self.lu1(out)
 
-        out = self.conv2(out)
+        offset = self.offset(out)
+        out = self.conv2(out, offset)
+
         out = self.bn2(out)
         out += self.shortcut(x)
         out = self.lu2(out)

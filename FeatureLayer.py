@@ -1,8 +1,8 @@
+from fightingcv_attention.attention.CBAM import CBAMBlock
 from torch import nn, Tensor
 from torch.nn import Sequential
 from torchvision.ops import DropBlock2d
 
-from EnhancementBlock import EnhancementBlock
 from ResBlock import ResBlock
 
 
@@ -11,7 +11,7 @@ class FeatureLayer(nn.Module):
         super(FeatureLayer, self).__init__()
         self.in_channels = 64
 
-        self.input_conv = nn.Conv2d(
+        self.conv = nn.Conv2d(
             in_channels=3,
             out_channels=self.in_channels,
             kernel_size=7,
@@ -19,11 +19,11 @@ class FeatureLayer(nn.Module):
             padding=3,
             bias=False
         )
-        self.input_bn = nn.BatchNorm2d(self.in_channels)
+        self.bn = nn.BatchNorm2d(self.in_channels)
         self.lu = nn.PReLU(num_parameters=self.in_channels)
-        self.max_pool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
 
-        self.enhance = EnhancementBlock(self.in_channels)
+        self.cbam = CBAMBlock(channel=self.in_channels, kernel_size=7)
+        self.pool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
 
         self.res_block1 = self.make_res_block(self.in_channels, 1)
         self.res_block2 = self.make_res_block(128, 2)
@@ -44,12 +44,12 @@ class FeatureLayer(nn.Module):
         return nn.Sequential(*layers)
 
     def forward(self, x: Tensor) -> Tensor:
-        out = self.input_conv(x)
-        out = self.input_bn(out)
+        out = self.conv(x)
+        out = self.bn(out)
         out = self.lu(out)
-        out = self.max_pool(out)
 
-        out = self.enhance(out)
+        out = self.cbam(out)
+        out = self.pool(out)
 
         out = self.res_block1(out)
         out = self.res_block2(out)
