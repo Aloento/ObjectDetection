@@ -24,15 +24,15 @@ class DetectionMetric(nn.Module):
         targ_scores = targets["scores"]
 
         preds = [{
-                "boxes": pred_boxes[i],
-                "labels": pred_labels[i],
-                "scores": pred_scores[i]
+                "boxes": pred_boxes[i].unsqueeze(0),
+                "labels": pred_labels[i].unsqueeze(0),
+                "scores": pred_scores[i].unsqueeze(0)
             } for i in range(len(pred_boxes))]
 
         targs = [{
-                "boxes": targ_boxes[i],
-                "labels": targ_labels[i],
-                "scores": targ_scores[i]
+                "boxes": targ_boxes[i].unsqueeze(0),
+                "labels": targ_labels[i].unsqueeze(0),
+                "scores": targ_scores[i].unsqueeze(0)
             } for i in range(len(targ_boxes))]
 
         map_score = self.map(preds, targs)

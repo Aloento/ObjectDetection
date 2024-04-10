@@ -24,16 +24,26 @@ class Model(nn.Module):
 if __name__ == "__main__":
     from prepare import prepare
     from torch.cuda import is_available
+    from DetectionMetric import DetectionMetric
 
     device = "cuda" if is_available() else "cpu"
     print("Using device", device)
 
-    _, val_loader = prepare()
+    _, _, test_loader = prepare()
     model = Model().to(device)
     model.train()
 
-    image, target = next(iter(val_loader))
-    comp_loss = model(image.to(device), target.to(device))
+    image, target = next(iter(test_loader))
+    comp_loss, pred, targ = model(image.to(device), target.to(device))
     comp_loss.backward()
 
     print("Loss:", comp_loss)
+
+    model.eval()
+    metric = DetectionMetric().to(device)
+    map_score, precision_score, recall_score, f1_score = metric(pred, targ)
+
+    print("MAP:", map_score)
+    print("Precision:", precision_score)
+    print("Recall:", recall_score)
+    print("F1:", f1_score)

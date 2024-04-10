@@ -32,14 +32,14 @@ def train_epoch(
 
         optimizer.zero_grad()
         with autocast():
-            loss = model(images, bboxes)  # type: torch.Tensor
+            loss, _, _ = model(images, bboxes)  # type: torch.Tensor
 
         scaler.scale(loss).backward()
         scaler.step(optimizer)
         scaler.update()
 
         total_loss += loss.item()
-        loop.set_postfix(loss=loss.item() * 1000)
+        loop.set_postfix(loss=loss.item())
 
         if i % 10 == 0:
             writer.add_scalar("Loss/Train Batch", loss.item(), epoch * len(dataloader) + i)
@@ -63,10 +63,10 @@ def validate_epoch(
             images = images.to(device)
             bboxes = bboxes.to(device)
 
-            loss = model(images, bboxes)  # type: torch.Tensor
+            loss, _, _ = model(images, bboxes)  # type: torch.Tensor
             total_loss += loss.item()
 
-            loop.set_postfix(loss=loss.item() * 1000)
+            loop.set_postfix(loss=loss.item())
 
             if i % 10 == 0:
                 writer.add_scalar("Loss/Validation Batch", loss.item(), epoch * len(dataloader) + i)
@@ -93,12 +93,32 @@ def evaluate_epoch(
             _, pred, targ = model(images, bboxes)
             map_score, precision_score, recall_score, f1_score = metric(pred, targ)
 
-            loop.set_postfix(map=map_score, precision=precision_score, recall=recall_score, f1=f1_score)
+            loop.set_postfix(map=map_score['map'], precision=precision_score, recall=recall_score, f1=f1_score)
 
-            writer.add_scalar("MAP", map_score, epoch * len(dataloader) + i)
-            writer.add_scalar("Precision", precision_score, epoch * len(dataloader) + i)
-            writer.add_scalar("Recall", recall_score, epoch * len(dataloader) + i)
-            writer.add_scalar("F1", f1_score, epoch * len(dataloader) + i)
+            writer.add_scalar('Metrics/mAP', map_score['map'], epoch * len(dataloader) + i)
+            # writer.add_scalar('Metrics/mAP/50', map_score['map_50'], epoch * len(dataloader) + i)
+            # writer.add_scalar('Metrics/mAP/75', map_score['map_75'], epoch * len(dataloader) + i)
+            # writer.add_scalar('Metrics/mAP/small', map_score['map_small'], epoch * len(dataloader) + i)
+            # writer.add_scalar('Metrics/mAP/medium', map_score['map_medium'], epoch * len(dataloader) + i)
+            # writer.add_scalar('Metrics/mAP/large', map_score['map_large'], epoch * len(dataloader) + i)
+            # writer.add_scalar('Metrics/mAP/1', map_score['mar_1'], epoch * len(dataloader) + i)
+            # writer.add_scalar('Metrics/mAP/10', map_score['mar_10'], epoch * len(dataloader) + i)
+            # writer.add_scalar('Metrics/mAP/100', map_score['mar_100'], epoch * len(dataloader) + i)
+            # writer.add_scalar('Metrics/mAP/small', map_score['mar_small'], epoch * len(dataloader) + i)
+            # writer.add_scalar('Metrics/mAP/medium', map_score['mar_medium'], epoch * len(dataloader) + i)
+            # writer.add_scalar('Metrics/mAP/large', map_score['mar_large'], epoch * len(dataloader) + i)
+            #
+            # for m, cls_idx in enumerate(map_score['classes']):
+            #     writer.add_scalar(
+            #         f'Metrics/mAP/per_class/{cls_idx}',
+            #         map_score['map_per_class'][m], epoch * len(dataloader) + i)
+            #     writer.add_scalar(
+            #         f'Metrics/mAP/100_per_class/{cls_idx}',
+            #         map_score['mar_100_per_class'][m], epoch * len(dataloader) + i)
+
+            writer.add_scalar("Metrics/Precision", precision_score, epoch * len(dataloader) + i)
+            writer.add_scalar("Metrics/Recall", recall_score, epoch * len(dataloader) + i)
+            writer.add_scalar("Metrics/F1", f1_score, epoch * len(dataloader) + i)
 
     return
 
@@ -114,7 +134,7 @@ def main():
 
     optimizer = optim.AdamW(model.parameters(), lr=1e-4, weight_decay=1e-3)
     scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer)
-    metric = DetectionMetric()
+    metric = DetectionMetric().to(device)
     scaler = GradScaler()
 
     start_epoch = load_checkpoint(model, optimizer, scheduler)
