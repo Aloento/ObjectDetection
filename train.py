@@ -7,6 +7,7 @@ from tqdm import tqdm
 
 from DetectionMetric import DetectionMetric
 from Model import Model
+from evaluate import evaluate_epoch
 from persist import save_checkpoint, load_checkpoint
 from prepare import prepare
 
@@ -74,55 +75,6 @@ def validate_epoch(
     return total_loss / len(dataloader)
 
 
-def evaluate_epoch(
-        model: Model,
-        dataloader: DataLoader,
-        device: torch.device,
-        metric: DetectionMetric,
-        writer: SummaryWriter,
-        epoch: int
-):
-    model.eval()
-    loop = tqdm(dataloader, leave=True, position=3, desc="Evaluation")
-
-    with torch.no_grad():
-        for i, (images, bboxes) in enumerate(loop):
-            images = images.to(device)
-            bboxes = bboxes.to(device)
-
-            _, pred, targ = model(images, bboxes)
-            map_score, precision_score, recall_score, f1_score = metric(pred, targ)
-
-            loop.set_postfix(map=map_score['map'], precision=precision_score, recall=recall_score, f1=f1_score)
-
-            writer.add_scalar('Metrics/mAP', map_score['map'], epoch * len(dataloader) + i)
-            # writer.add_scalar('Metrics/mAP/50', map_score['map_50'], epoch * len(dataloader) + i)
-            # writer.add_scalar('Metrics/mAP/75', map_score['map_75'], epoch * len(dataloader) + i)
-            # writer.add_scalar('Metrics/mAP/small', map_score['map_small'], epoch * len(dataloader) + i)
-            # writer.add_scalar('Metrics/mAP/medium', map_score['map_medium'], epoch * len(dataloader) + i)
-            # writer.add_scalar('Metrics/mAP/large', map_score['map_large'], epoch * len(dataloader) + i)
-            # writer.add_scalar('Metrics/mAP/1', map_score['mar_1'], epoch * len(dataloader) + i)
-            # writer.add_scalar('Metrics/mAP/10', map_score['mar_10'], epoch * len(dataloader) + i)
-            # writer.add_scalar('Metrics/mAP/100', map_score['mar_100'], epoch * len(dataloader) + i)
-            # writer.add_scalar('Metrics/mAP/small', map_score['mar_small'], epoch * len(dataloader) + i)
-            # writer.add_scalar('Metrics/mAP/medium', map_score['mar_medium'], epoch * len(dataloader) + i)
-            # writer.add_scalar('Metrics/mAP/large', map_score['mar_large'], epoch * len(dataloader) + i)
-            #
-            # for m, cls_idx in enumerate(map_score['classes']):
-            #     writer.add_scalar(
-            #         f'Metrics/mAP/per_class/{cls_idx}',
-            #         map_score['map_per_class'][m], epoch * len(dataloader) + i)
-            #     writer.add_scalar(
-            #         f'Metrics/mAP/100_per_class/{cls_idx}',
-            #         map_score['mar_100_per_class'][m], epoch * len(dataloader) + i)
-
-            writer.add_scalar("Metrics/Precision", precision_score, epoch * len(dataloader) + i)
-            writer.add_scalar("Metrics/Recall", recall_score, epoch * len(dataloader) + i)
-            writer.add_scalar("Metrics/F1", f1_score, epoch * len(dataloader) + i)
-
-    return
-
-
 def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print("Using device", device)
@@ -155,6 +107,8 @@ def main():
 
         if epoch % 10 == 0:
             save_checkpoint(model, optimizer, scheduler, epoch)
+
+    writer.close()
 
 
 if __name__ == "__main__":
