@@ -7,7 +7,7 @@ class ComputeLoss(nn.Module):
     def __init__(self):
         super().__init__()
         self.l1 = nn.L1Loss()
-        self.bce = nn.BCELoss()
+        self.bce = nn.BCEWithLogitsLoss()
         self.focal = sigmoid_focal_loss
 
     def forward(self, predictions: Tensor, targets: Tensor):
@@ -21,7 +21,7 @@ class ComputeLoss(nn.Module):
 
         pred_cls = predictions[:, 5:, 0, 0].squeeze(-1).squeeze(-1)
         target_cls = targets[:, 4].long()
-        hot_target_cls = one_hot(target_cls, num_classes=pred_cls.shape[1]).float()
+        hot_target_cls = one_hot(target_cls, num_classes=17).float()
         loss_cls = self.focal(pred_cls, hot_target_cls, reduction="mean")
 
         pred = {

@@ -14,8 +14,6 @@ class DetectionLayer(nn.Module):
        padding: 0
 
        [x Center, y Center, Width, Height, Confidence, Class]
-
-    2. Sigmoid
     """
     def __init__(self):
         super(DetectionLayer, self).__init__()
@@ -32,10 +30,7 @@ class DetectionLayer(nn.Module):
             padding=0
         )
 
-        self.sigmoid = nn.Sigmoid()
-
     def forward(self, x: Tensor) -> Tensor:
         x = self.enhance(x)
         x = self.conv(x)
-        x = self.sigmoid(x)
         return x

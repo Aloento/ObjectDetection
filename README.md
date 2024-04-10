@@ -161,8 +161,6 @@ Depthwise Separable Convolution 用于减少参数量，提高计算效率，
    [x Center, y Center, Width, Height, Confidence, Class]  
    其中 Class 有 17 种，则通道数为 $5 + 17 = 22$
 
-2. Sigmoid
-
 ## 4. 后处理
 
 1. NMS
