@@ -94,6 +94,8 @@ def main():
     writer = SummaryWriter()
 
     for epoch in tqdm(range(start_epoch, epochs), desc="Epochs", position=0):
+        evaluate_epoch(model, test_loader, device, metric, writer, epoch)
+
         train_loss = train_epoch(model, train_loader, optimizer, device, scaler, writer, epoch)
         writer.add_scalar("Loss/Train Epoch", train_loss, epoch)
 
