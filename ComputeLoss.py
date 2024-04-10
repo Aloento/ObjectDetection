@@ -9,9 +9,11 @@ class ComputeLoss(nn.Module):
         self.l1 = nn.L1Loss()
         self.bce = nn.BCEWithLogitsLoss()
         self.focal = sigmoid_focal_loss
+        self.sigmoid = nn.Sigmoid()
 
     def forward(self, predictions: Tensor, targets: Tensor):
         pred_box = predictions[:, :4, 0, 0].squeeze(-1).squeeze(-1)
+        pred_box = self.sigmoid(pred_box)
         target_box = targets[:, :4]
         loss_box = self.l1(pred_box, target_box)
 
