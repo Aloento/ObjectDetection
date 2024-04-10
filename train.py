@@ -106,11 +106,10 @@ def main():
 
         val_loss = validate_epoch(model, val_loader, device, writer, epoch)
         scheduler.step(val_loss)
-
         writer.add_scalar("Learning Rate", optimizer.param_groups[0]["lr"], epoch)
 
-        print(f"\nEpoch {epoch + 1}/{epochs} - Training Loss: {train_loss:.4f}, Validation Loss: {val_loss:.4f}")
         evaluate_epoch(model, test_loader, device, metric, writer, epoch)
+        print(f"\nEpoch {epoch + 1}/{epochs} - Training Loss: {train_loss:.4f}, Validation Loss: {val_loss:.4f}")
 
         if epoch % 10 == 0:
             save_checkpoint(model, optimizer, scheduler, epoch)

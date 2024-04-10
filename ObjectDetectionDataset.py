@@ -27,7 +27,8 @@ class ObjectDetectionDataset(Dataset):
         self.image_size = image_size
 
         self.transform = A.Compose([
-            ToTensorV2()
+            # A.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+            ToTensorV2(),
         ], bbox_params=A.BboxParams(format="albumentations"))
 
         if dataset_type == "train":
