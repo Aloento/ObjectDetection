@@ -24,7 +24,7 @@ def evaluate_epoch(
             images = images.to(device)
             bboxes = bboxes.to(device)
 
-            _, pred, targ = model(images, bboxes)
+            _, (pred, targ) = model(images, bboxes)
             map_score, precision_score, recall_score, f1_score = metric(pred, targ)
 
             loop.set_postfix(
@@ -67,7 +67,7 @@ def evaluate_epoch(
                 target_label = targ["labels"][0].item()
 
                 writer.add_image_with_boxes(
-                    tag=f'Prediction {current}',
+                    tag=f'Prediction {i}',
                     img_tensor=image,
                     box_tensor=box_xyxy,
                     labels=[f'Pred: {pred_label} / {pred_score}', f'Target: {target_label}'],

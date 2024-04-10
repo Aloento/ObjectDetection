@@ -32,18 +32,18 @@ class ObjectDetectionDataset(Dataset):
 
         if dataset_type == "train":
             self.num_samples = 5000
-            self.transform = A.Compose([
-                # A.HorizontalFlip(p=0.5),
-                # A.VerticalFlip(p=0.5),
-                # A.RandomRotate90(p=0.5),
-                # A.RandomBrightnessContrast(p=0.2),
-                # A.RandomGamma(p=0.2),
-                # A.ColorJitter(p=0.2),
-                # A.ElasticTransform(p=0.2),
-                # A.GaussNoise(p=0.2),
-                # A.Resize(image_size, image_size),
-                ToTensorV2()
-            ], bbox_params=A.BboxParams(format="albumentations"))
+            # self.transform = A.Compose([
+            #     A.HorizontalFlip(p=0.5),
+            #     A.VerticalFlip(p=0.5),
+            #     A.RandomRotate90(p=0.5),
+            #     A.RandomBrightnessContrast(p=0.2),
+            #     A.RandomGamma(p=0.2),
+            #     A.ColorJitter(p=0.2),
+            #     A.ElasticTransform(p=0.2),
+            #     A.GaussNoise(p=0.2),
+            #     A.Resize(image_size, image_size),
+            #     ToTensorV2()
+            # ], bbox_params=A.BboxParams(format="albumentations"))
         elif dataset_type == "val":
             self.num_samples = 1000
         elif dataset_type == "test":

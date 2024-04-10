@@ -17,8 +17,8 @@ class Model(nn.Module):
         images = self.fe(images)
         images = self.out(images)
 
-        loss, pred, targ = self.loss(images, bboxes)
-        return loss, pred, targ
+        x = self.loss(images, bboxes)
+        return x
 
 
 if __name__ == "__main__":
@@ -34,10 +34,15 @@ if __name__ == "__main__":
     model.train()
 
     image, target = next(iter(test_loader))
-    comp_loss, pred, targ = model(image.to(device), target.to(device))
+    (loss_box, loss_conf, loss_cls), (pred, targ) = model(image.to(device), target.to(device))
+
+    comp_loss = (loss_box + loss_conf + loss_cls) / image.shape[0]
     comp_loss.backward()
 
     print("Loss:", comp_loss)
+    print("Loss Box:", loss_box)
+    print("Loss Confidence:", loss_conf)
+    print("Loss Class:", loss_cls)
 
     model.eval()
     metric = DetectionMetric().to(device)

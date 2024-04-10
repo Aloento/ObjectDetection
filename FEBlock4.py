@@ -49,7 +49,6 @@ class FEBlock4(nn.Module):
 
         residual = self.residual_conv(residual)
         residual = self.residual_pool(residual)
-
-        assert x.shape == residual.shape, f"Output shape {x.shape} and residual shape {residual.shape} must be equal"
         x += residual
+
         return x

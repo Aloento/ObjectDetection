@@ -33,7 +33,9 @@ def train_epoch(
 
         optimizer.zero_grad()
         with autocast():
-            loss, _, _ = model(images, bboxes)  # type: torch.Tensor
+            (loss_box, loss_conf, loss_cls), _ = model(images, bboxes)
+
+        loss = (loss_box + loss_conf + loss_cls) / images.shape[0]
 
         scaler.scale(loss).backward()
         scaler.step(optimizer)
@@ -42,8 +44,13 @@ def train_epoch(
         total_loss += loss.item()
         loop.set_postfix(loss=loss.item())
 
+        current = epoch * len(dataloader) + i
+
         if i % 10 == 0:
-            writer.add_scalar("Loss/Train Batch", loss.item(), epoch * len(dataloader) + i)
+            writer.add_scalar("Loss/Train Batch", loss.item(), current)
+            writer.add_scalar("Loss/Box", loss_box.item(), current)
+            writer.add_scalar("Loss/Confidence", loss_conf.item(), current)
+            writer.add_scalar("Loss/Class", loss_cls.item(), current)
 
     return total_loss / len(dataloader)
 
@@ -64,9 +71,10 @@ def validate_epoch(
             images = images.to(device)
             bboxes = bboxes.to(device)
 
-            loss, _, _ = model(images, bboxes)  # type: torch.Tensor
-            total_loss += loss.item()
+            (loss_box, loss_conf, loss_cls), _ = model(images, bboxes)
 
+            loss = (loss_box + loss_conf + loss_cls) / images.shape[0]
+            total_loss += loss.item()
             loop.set_postfix(loss=loss.item())
 
             if i % 10 == 0:
@@ -95,11 +103,10 @@ def main():
 
     for epoch in tqdm(range(start_epoch, epochs), desc="Epochs", position=0):
         train_loss = train_epoch(model, train_loader, optimizer, device, scaler, writer, epoch)
-        writer.add_scalar("Loss/Train Epoch", train_loss, epoch)
 
         val_loss = validate_epoch(model, val_loader, device, writer, epoch)
-        scheduler.step(val_loss)
-        writer.add_scalar("Loss/Validation Epoch", val_loss, epoch)
+        scheduler.step(val_loss, epoch)
+
         writer.add_scalar("Learning Rate", optimizer.param_groups[0]["lr"], epoch)
 
         print(f"\nEpoch {epoch + 1}/{epochs} - Training Loss: {train_loss:.4f}, Validation Loss: {val_loss:.4f}")
