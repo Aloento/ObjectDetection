@@ -7,7 +7,6 @@ from tqdm import tqdm
 
 from DetectionMetric import DetectionMetric
 from Model import Model
-from evaluate import evaluate_epoch
 from persist import save_checkpoint, load_checkpoint
 from prepare import prepare
 
@@ -27,7 +26,7 @@ def train_epoch(
 
     # torch.Size([batch_size, 3 RGB channels, 640 w, 640 h])
     # torch.Size([num_of_images, (x Center, y Center, Width, Height, Class) 5 dims])
-    for i, (images, bboxes) in enumerate(loop):  # type: int, (torch.Tensor, torch.Tensor)
+    for i, (images, bboxes) in enumerate(loop):
         images = images.to(device)
         bboxes = bboxes.to(device)
 
@@ -84,7 +83,7 @@ def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print("Using device", device)
 
-    train_loader, val_loader, test_loader = prepare()
+    train_loader, val_loader = prepare()
 
     model = Model().to(device)
     print(f'The model has {sum(p.numel() for p in model.parameters() if p.requires_grad):,} trainable parameters')
@@ -105,7 +104,6 @@ def main():
         scheduler.step(val_loss)
         writer.add_scalar("Learning Rate", optimizer.param_groups[0]["lr"], epoch)
 
-        evaluate_epoch(model, test_loader, device, metric, writer, epoch)
         print(f"\nEpoch {epoch + 1}/{epochs} - Training Loss: {train_loss:.4f}, Validation Loss: {val_loss:.4f}")
 
         if epoch % 10 == 0:

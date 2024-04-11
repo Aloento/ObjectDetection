@@ -53,12 +53,8 @@ class VOCItem:
 
     annotation_dict: dict[str, VOCAnnotation] = {}
 
-    def __init__(self, category: str, image_id: str, exist: str):
-        self.category = category
+    def __init__(self, image_id: str):
         self.image_id = image_id
-
-        exist = int(exist)
-        self.exist = 0 if exist == -1 else exist
 
         self.image_path = f"{VOCItem.images_path}{image_id}.jpg"
         self.annotation_path = f"{VOCItem.anno_path}{image_id}.xml"

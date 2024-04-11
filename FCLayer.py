@@ -1,10 +1,12 @@
 from torch import nn, Tensor
 
+from VOCDataset import catalogs
+
 
 class FCLayer(nn.Module):
     def __init__(self, in_channels: int):
         super(FCLayer, self).__init__()
-        self.out_channels = 17
+        self.out_channels = len(catalogs)
 
         self.avg_pool = nn.AdaptiveAvgPool2d((1, 1))
         self.fc = nn.Linear(in_channels, self.out_channels)

@@ -13,11 +13,11 @@ class Model(nn.Module):
         self.out = FCLayer(512)
         self.loss = ComputeLoss()
 
-    def forward(self, predictions: Tensor, bboxes: Tensor) -> (Tensor, dict[str, Tensor], dict[str, Tensor]):
-        predictions = self.fe(predictions)
-        predictions = self.out(predictions)
+    def forward(self, x: Tensor, bboxes: Tensor) -> (Tensor, dict[str, Tensor], dict[str, Tensor]):
+        x = self.fe(x)
+        x = self.out(x)
 
-        x = self.loss(predictions, bboxes)
+        x = self.loss(x, bboxes)
         return x
 
 
@@ -29,12 +29,12 @@ if __name__ == "__main__":
     device = "cuda" if is_available() else "cpu"
     print("Using device", device)
 
-    _, _, test_loader = prepare()
+    _, val_loader = prepare()
     model = Model().to(device)
     model.train()
 
-    image, target = next(iter(test_loader))
-    loss_cls, (pred, targ) = model(image.to(device), target.to(device))
+    image, bboxes, target, exist = next(iter(val_loader))
+    loss_cls, (pred, targ) = model(image.to(device), bboxes.to(device))
     loss_cls.backward()
 
     # print("Loss:", comp_loss)
