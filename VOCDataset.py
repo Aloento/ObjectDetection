@@ -1,7 +1,10 @@
 import albumentations as A
+import torch
 from albumentations.pytorch import ToTensorV2
 from torch.utils.data import Dataset
 from tqdm import tqdm
+
+from torch.nn.functional import one_hot
 
 from VOCImage import VOCItem
 
@@ -38,4 +41,28 @@ class VOCDataset(Dataset):
         return len(self.dataset)
 
     def __getitem__(self, idx: int):
-        return
+        item = self.dataset[idx]
+        bboxes: list[list[int]] = []
+
+        for obj in item.annotation.objects:
+            bbox = obj.bndbox.get()
+            bbox += [VOCDataset.catalogs.index(obj.name)]
+            bboxes.append(bbox)
+
+        one_hot_target = one_hot(
+            torch.tensor(VOCDataset.catalogs.index(item.category)),
+            num_classes=len(VOCDataset.catalogs)
+        )  # type: torch.LongTensor
+
+        image = item.get_image()
+        transformed = self.transform(image=image, bboxes=bboxes)
+
+        t_image = transformed["image"]  # type: torch.FloatTensor
+        t_bboxes = torch.tensor(transformed["bboxes"], dtype=torch.float16)
+
+        return {
+            "image": t_image,
+            "bboxes": t_bboxes,
+            "target": one_hot_target,
+            "exist": item.exist
+        }

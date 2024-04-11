@@ -1,5 +1,5 @@
+import numpy as np
 from PIL import Image
-from albumentations.core.bbox_utils import convert_bbox_to_albumentations
 
 try:
     from defusedxml.ElementTree import parse as ET_parse
@@ -10,30 +10,30 @@ from torchvision.datasets import VOCDetection
 
 
 class BoundingBox:
-    def __init__(self, xmin: int, ymin: int, xmax: int, ymax: int, **kwargs):
-        self.xmin = xmin
-        self.ymin = ymin
-        self.xmax = xmax
-        self.ymax = ymax
+    def __init__(self, xmin: str, ymin: str, xmax: str, ymax: str, **kwargs):
+        self.xmin = int(xmin)
+        self.ymin = int(ymin)
+        self.xmax = int(xmax)
+        self.ymax = int(ymax)
 
     def get(self):
         return [self.xmin, self.ymin, self.xmax, self.ymax]
 
 
 class Object:
-    def __init__(self, name: str, pose: str, truncated: bool, difficult: bool, bndbox: dict, **kwargs):
+    def __init__(self, name: str, pose: str, truncated: str, difficult: str, bndbox: dict, **kwargs):
         self.name = name
         self.pose = pose
-        self.truncated = truncated
-        self.difficult = difficult
+        self.truncated = truncated == '1'
+        self.difficult = difficult == '1'
         self.bndbox = BoundingBox(**bndbox)
 
 
 class Size:
-    def __init__(self, width: int, height: int, depth: int, **kwargs):
-        self.width = width
-        self.height = height
-        self.depth = depth
+    def __init__(self, width: str, height: str, depth: str, **kwargs):
+        self.width = int(width)
+        self.height = int(height)
+        self.depth = int(depth)
 
 
 class VOCAnnotation:
@@ -53,8 +53,8 @@ class VOCItem:
 
     annotation_dict: dict[str, VOCAnnotation] = {}
 
-    def __init__(self, catalog: str, image_id: str, exist: str):
-        self.catalog = catalog
+    def __init__(self, category: str, image_id: str, exist: str):
+        self.category = category
         self.image_id = image_id
 
         exist = int(exist)
@@ -78,4 +78,6 @@ class VOCItem:
         return anno
 
     def get_image(self):
-        return Image.open(self.image_path).convert('RGB')
+        img = Image.open(self.image_path).convert('RGB')
+        img = np.array(img, dtype=np.float32) / 255.0
+        return img

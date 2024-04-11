@@ -4,6 +4,9 @@ from VOCDataset import VOCDataset
 def prepare():
     var = VOCDataset()
 
+    for i in var:
+        print(i)
+
     print(var)
 
 
