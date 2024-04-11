@@ -44,13 +44,13 @@ def evaluate_epoch(
             if i % 10 == 0:
                 image = images[0]
 
-                pred_box = pred["boxes"][0]
-                pred_box_xyxy = convert_bbox_from_albumentations(
-                    bbox=pred_box,
-                    target_format='pascal_voc',
-                    rows=640,
-                    cols=640
-                )
+                # pred_box = pred["boxes"][0]
+                # pred_box_xyxy = convert_bbox_from_albumentations(
+                #     bbox=pred_box,
+                #     target_format='pascal_voc',
+                #     rows=640,
+                #     cols=640
+                # )
 
                 pred_label = pred["labels"][0].item()
                 pred_score = pred["scores"][0].item()
@@ -63,14 +63,14 @@ def evaluate_epoch(
                     cols=640
                 )
 
-                box_xyxy = torch.tensor([pred_box_xyxy, target_box_xyxy])
+                box_xyxy = torch.tensor([target_box_xyxy])
                 target_label = targ["labels"][0].item()
 
                 writer.add_image_with_boxes(
                     tag=f'Prediction {i}',
                     img_tensor=image,
                     box_tensor=box_xyxy,
-                    labels=[f'Pred: {pred_label} / {pred_score}', f'Target: {target_label}'],
+                    labels=[f'Pred: {pred_label} / {pred_score}, Target: {target_label}'],
                     global_step=epoch * len(dataloader) + i
                 )
 

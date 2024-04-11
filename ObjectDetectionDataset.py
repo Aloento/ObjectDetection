@@ -147,7 +147,7 @@ class ObjectDetectionDataset(Dataset):
         img = Image.open(img_path).convert("RGB")
         img = np.array(img, dtype=np.float32) / 255.0
 
-        transformed = self.transform(image=img, bboxes=[[0, 0, 1, 1] if no_obj else bbox])
+        transformed = self.transform(image=img, bboxes=[[0, 0, 1, 1, 0] if no_obj else bbox])
         img = transformed["image"]
 
         bbox = transformed["bboxes"][0]
