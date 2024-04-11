@@ -21,7 +21,7 @@ class VOCDataset(Dataset):
     ):
         self.dataset: list[VOCItem] = []
 
-        for catalog in tqdm(VOCDataset.catalogs, desc="Loading VOC Dataset"):  # type: str
+        for catalog in tqdm(VOCDataset.catalogs, desc=f"Loading VOC {image_set} Dataset"):  # type: str
             set_path = VOCDataset.sets_path + catalog + "_" + image_set + ".txt"
 
             with open(set_path) as f:
