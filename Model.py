@@ -33,7 +33,6 @@ if __name__ == "__main__":
     model.train()
 
     image, boxes = next(iter(val_loader))
-    boxes = [bbox.to(device) for bbox in boxes]
 
     loss_cls = model(image.to(device), boxes)
     loss_cls.backward()

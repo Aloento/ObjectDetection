@@ -25,7 +25,6 @@ def train_epoch(
 
     for i, (images, bboxes) in enumerate(loop):  # type: int, (torch.Tensor, list[torch.Tensor])
         images = images.to(device)
-        bboxes = [bbox.to(device) for bbox in bboxes]
 
         optimizer.zero_grad()
         with autocast():
@@ -60,7 +59,6 @@ def validate_epoch(
     with torch.no_grad():
         for i, (images, bboxes) in enumerate(loop):  # type: int, (torch.Tensor, list[torch.Tensor])
             images = images.to(device)
-            bboxes = [bbox.to(device) for bbox in bboxes]
 
             loss_cls = model(images, bboxes)
 
