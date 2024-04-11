@@ -10,11 +10,11 @@ class FCLayer(nn.Module):
 
         self.avg_pool = nn.AdaptiveAvgPool2d((1, 1))
         self.fc = nn.Linear(in_channels, self.out_channels)
-        self.softmax = nn.Softmax(dim=1)
+        self.sigmoid = nn.Sigmoid()
 
     def forward(self, x: Tensor) -> Tensor:
         x = self.avg_pool(x)
         x = x.view(x.size(0), -1)
         x = self.fc(x)
-        x = self.softmax(x)
+        x = self.sigmoid(x)
         return x

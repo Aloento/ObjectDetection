@@ -13,7 +13,7 @@ class Model(nn.Module):
         self.out = FCLayer(512)
         self.loss = ComputeLoss()
 
-    def forward(self, x: Tensor, bboxes: Tensor) -> (Tensor, dict[str, Tensor], dict[str, Tensor]):
+    def forward(self, x: Tensor, bboxes: list[Tensor]) -> (Tensor, dict[str, Tensor], dict[str, Tensor]):
         x = self.fe(x)
         x = self.out(x)
 
@@ -24,7 +24,6 @@ class Model(nn.Module):
 if __name__ == "__main__":
     from prepare import prepare
     from torch.cuda import is_available
-    from DetectionMetric import DetectionMetric
 
     device = "cuda" if is_available() else "cpu"
     print("Using device", device)
@@ -33,19 +32,10 @@ if __name__ == "__main__":
     model = Model().to(device)
     model.train()
 
-    image, bboxes, target, exist = next(iter(val_loader))
-    loss_cls, (pred, targ) = model(image.to(device), bboxes.to(device))
+    image, boxes = next(iter(val_loader))
+    boxes = [bbox.to(device) for bbox in boxes]
+
+    loss_cls = model(image.to(device), boxes)
     loss_cls.backward()
 
-    # print("Loss:", comp_loss)
-    # print("Loss Box:", loss_box)
     print("Loss Class:", loss_cls)
-
-    model.eval()
-    metric = DetectionMetric().to(device)
-    map_score, precision_score, recall_score, f1_score = metric(pred, targ)
-
-    print("MAP:", map_score)
-    print("Precision:", precision_score)
-    print("Recall:", recall_score)
-    print("F1:", f1_score)

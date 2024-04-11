@@ -47,6 +47,6 @@ class VOCDataset(Dataset):
         transformed = self.transform(image=image, bboxes=bboxes)
 
         t_image = transformed["image"]  # type: torch.FloatTensor
-        t_bboxes = torch.tensor(transformed["bboxes"], dtype=torch.float16)
+        t_bboxes = torch.tensor(transformed["bboxes"])
 
         return t_image, t_bboxes

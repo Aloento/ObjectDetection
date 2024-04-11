@@ -5,7 +5,6 @@ from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
 
-from DetectionMetric import DetectionMetric
 from Model import Model
 from persist import save_checkpoint, load_checkpoint
 from prepare import prepare
@@ -24,15 +23,13 @@ def train_epoch(
     total_loss = 0  # type: float
     loop = tqdm(dataloader, leave=True, position=1, desc="Training")
 
-    # torch.Size([batch_size, 3 RGB channels, 640 w, 640 h])
-    # torch.Size([num_of_images, (x Center, y Center, Width, Height, Class) 5 dims])
-    for i, (images, bboxes) in enumerate(loop):
+    for i, (images, bboxes) in enumerate(loop):  # type: int, (torch.Tensor, list[torch.Tensor])
         images = images.to(device)
-        bboxes = bboxes.to(device)
+        bboxes = [bbox.to(device) for bbox in bboxes]
 
         optimizer.zero_grad()
         with autocast():
-            loss_cls, _ = model(images, bboxes)
+            loss_cls = model(images, bboxes)
 
         scaler.scale(loss_cls).backward()
         scaler.step(optimizer)
@@ -44,8 +41,6 @@ def train_epoch(
         current = epoch * len(dataloader) + i
 
         if i % 10 == 0:
-            # writer.add_scalar("Loss/Train Batch", loss.item(), current)
-            # writer.add_scalar("Loss/Box", loss_box.item(), current)
             writer.add_scalar("Loss/Class", loss_cls.item(), current)
 
     return total_loss / len(dataloader)
@@ -63,12 +58,11 @@ def validate_epoch(
     loop = tqdm(dataloader, leave=True, position=2, desc="Validation")
 
     with torch.no_grad():
-        for i, (images, bboxes) in enumerate(loop):  # type: int, (torch.Tensor, torch.Tensor)
+        for i, (images, bboxes) in enumerate(loop):  # type: int, (torch.Tensor, list[torch.Tensor])
             images = images.to(device)
-            bboxes = bboxes.to(device)
+            bboxes = [bbox.to(device) for bbox in bboxes]
 
-            # (loss_box, loss_conf, loss_cls), _ = model(images, bboxes)
-            loss_cls, _ = model(images, bboxes)
+            loss_cls = model(images, bboxes)
 
             total_loss += loss_cls.item()
             loop.set_postfix(loss=loss_cls.item())
@@ -90,7 +84,6 @@ def main():
 
     optimizer = optim.AdamW(model.parameters())
     scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer)
-    metric = DetectionMetric().to(device)
     scaler = GradScaler()
 
     start_epoch = load_checkpoint(model, optimizer, scheduler)
