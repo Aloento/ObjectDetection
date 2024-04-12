@@ -9,6 +9,8 @@ from Model import Model
 from persist import save_checkpoint, load_checkpoint
 from prepare import prepare
 
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
 
 def train_epoch(
         model: Model,
@@ -23,6 +25,9 @@ def train_epoch(
     loop = tqdm(dataloader, leave=True, position=1, desc="Training")
 
     for i, (images, bboxes, labels) in enumerate(loop):
+        images = images.to(device)
+        labels = labels.to(device)
+
         optimizer.zero_grad()
         with autocast():
             outputs, loss_cls = model(images, bboxes, labels)
@@ -58,6 +63,9 @@ def validate_epoch(
 
     with torch.no_grad():
         for i, (images, bboxes, labels) in enumerate(loop):
+            images = images.to(device)
+            labels = labels.to(device)
+
             _, loss_cls = model(images, bboxes, labels)
 
             total_loss += loss_cls.item()
@@ -70,7 +78,6 @@ def validate_epoch(
 
 
 def main():
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print("Using device", device)
 
     train_loader, val_loader = prepare()
@@ -83,7 +90,7 @@ def main():
     scaler = GradScaler()
 
     start_epoch = load_checkpoint(model, optimizer, scheduler)
-    epochs = 1000
+    epochs = 200
     writer = SummaryWriter()
 
     for epoch in tqdm(range(start_epoch, epochs), desc="Epochs", position=0):
