@@ -1,6 +1,6 @@
 from torch import nn, Tensor
+from torch.nn import CrossEntropyLoss
 
-from ComputeLoss import ComputeLoss
 from FeatureLayer import FeatureLayer
 
 
@@ -9,12 +9,12 @@ class Model(nn.Module):
         super(Model, self).__init__()
 
         self.res = FeatureLayer()
-        self.loss = ComputeLoss()
+        self.ce = CrossEntropyLoss()
 
-    def forward(self, x: Tensor, bboxes: list[Tensor]) -> (Tensor, dict[str, Tensor], dict[str, Tensor]):
-        x = self.res(x)
-        x = self.loss(x, bboxes)
-        return x
+    def forward(self, x: Tensor, labels: Tensor) -> (Tensor, dict[str, Tensor], dict[str, Tensor]):
+        outputs = self.res(x)
+        loss = self.ce(outputs, labels)
+        return outputs, loss
 
 
 if __name__ == "__main__":
@@ -28,9 +28,9 @@ if __name__ == "__main__":
     model = Model().to(device)
     model.train()
 
-    image, boxes = next(iter(val_loader))
+    inputs, labels = next(iter(val_loader))
 
-    loss_cls = model(image.to(device), boxes)
+    loss_cls = model(inputs.to(device), labels.to(device))
     loss_cls.backward()
 
     print("Loss Class:", loss_cls)

@@ -23,12 +23,13 @@ def train_epoch(
     total_loss = 0  # type: float
     loop = tqdm(dataloader, leave=True, position=1, desc="Training")
 
-    for i, (images, bboxes) in enumerate(loop):  # type: int, (torch.Tensor, list[torch.Tensor])
+    for i, (images, labels) in enumerate(loop):  # type: int, (torch.Tensor, torch.Tensor)
         images = images.to(device)
+        labels = labels.to(device)
 
         optimizer.zero_grad()
         with autocast():
-            loss_cls = model(images, bboxes)
+            _, loss_cls = model(images, labels)
 
         scaler.scale(loss_cls).backward()
         scaler.step(optimizer)
@@ -56,19 +57,25 @@ def validate_epoch(
     total_loss = 0  # type: float
     loop = tqdm(dataloader, leave=True, position=2, desc="Validation")
 
+    correct = 0
+    total = 0
+
     with torch.no_grad():
-        for i, (images, bboxes) in enumerate(loop):  # type: int, (torch.Tensor, list[torch.Tensor])
-            if i % 2 == 0:
-                continue
-
+        for i, (images, labels) in enumerate(loop):  # type: int, (torch.Tensor, torch.Tensor)
             images = images.to(device)
+            labels = labels.to(device)
 
-            loss_cls = model(images, bboxes)
+            outputs, loss_cls = model(images, labels)
 
             total_loss += loss_cls.item()
             loop.set_postfix(loss=loss_cls.item())
 
             if i % 10 == 0:
+                _, predicted = torch.max(outputs.data, 1)
+                total += labels.size(0)
+                correct += (predicted == labels).sum().item()
+
+                writer.add_scalar("Accuracy/Validation Batch", 100 * correct / total, epoch * len(dataloader) + i)
                 writer.add_scalar("Loss/Validation Batch", loss_cls.item(), epoch * len(dataloader) + i)
 
     return total_loss / len(dataloader)
