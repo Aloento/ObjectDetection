@@ -58,6 +58,9 @@ def validate_epoch(
 
     with torch.no_grad():
         for i, (images, bboxes) in enumerate(loop):  # type: int, (torch.Tensor, list[torch.Tensor])
+            if i % 2 == 0:
+                continue
+
             images = images.to(device)
 
             loss_cls = model(images, bboxes)

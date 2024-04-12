@@ -21,6 +21,6 @@ class ComputeLoss(nn.Module):
         ]
 
         label_matrix = torch.stack(label_matrix).to(self.device)
-        loss_cls = self.bce(predictions, label_matrix, reduction="mean")
+        loss_cls = self.bce(predictions, label_matrix)
 
         return loss_cls
