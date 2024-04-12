@@ -25,7 +25,7 @@ def train_epoch(
     for i, (images, bboxes, labels) in enumerate(loop):
         optimizer.zero_grad()
         with autocast():
-            loss_cls = model(images, bboxes, labels)
+            _, loss_cls = model(images, bboxes, labels)
 
         scaler.scale(loss_cls).backward()
         scaler.step(optimizer)
@@ -54,7 +54,7 @@ def validate_epoch(
 
     with torch.no_grad():
         for i, (images, bboxes, labels) in enumerate(loop):
-            loss_cls = model(images, bboxes, labels)
+            _, loss_cls = model(images, bboxes, labels)
 
             total_loss += loss_cls.item()
             loop.set_postfix(loss=loss_cls.item())

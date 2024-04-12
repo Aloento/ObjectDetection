@@ -1,6 +1,6 @@
 from torch import nn, Tensor
+from torch.nn import BCEWithLogitsLoss
 
-from ComputeLoss import ComputeLoss
 from FeatureLayer import FeatureLayer
 
 
@@ -9,12 +9,12 @@ class Model(nn.Module):
         super(Model, self).__init__()
 
         self.res = FeatureLayer()
-        self.loss = ComputeLoss()
+        self.bce = BCEWithLogitsLoss()
 
     def forward(self, x: Tensor, bboxes: list[Tensor], labels: list[Tensor]):
         x = self.res(x)
-        x = self.loss(x, bboxes, labels)
-        return x
+        loss_cls = self.bce(x, labels)
+        return x, loss_cls
 
 
 if __name__ == "__main__":
@@ -30,7 +30,7 @@ if __name__ == "__main__":
 
     image, bbox_s, label_s = next(iter(val_loader))
 
-    loss_cls = model(image.to(device), bbox_s, label_s)
-    loss_cls.backward()
+    _, loss = model(image.to(device), bbox_s, label_s)
+    loss.backward()
 
-    print("Loss Class:", loss_cls)
+    print("Loss Class:", loss)

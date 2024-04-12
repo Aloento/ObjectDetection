@@ -7,7 +7,7 @@ from VOCDataset import VOCDataset, catalogs
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
-def custom_collate_fn(batch):
+def collate_fn(batch):
     images = []
     bboxes = []
     labels = []
@@ -35,7 +35,7 @@ def prepare():
         batch_size=40,
         shuffle=True,
         num_workers=8,
-        collate_fn=custom_collate_fn,
+        collate_fn=collate_fn,
         pin_memory=True,
         drop_last=True
     )
@@ -46,7 +46,7 @@ def prepare():
         batch_size=40,
         shuffle=False,
         num_workers=8,
-        collate_fn=custom_collate_fn
+        collate_fn=collate_fn
     )
 
     return train_loader, val_loader
