@@ -27,9 +27,10 @@ def prepare():
 
     train_loader = DataLoader(
         train_dataset,
-        batch_size=128,
+        batch_size=512,
         shuffle=True,
-        num_workers=4
+        num_workers=4,
+        pin_memory=True
     )
 
     val_dataset = torchvision.datasets.CIFAR10(
@@ -41,7 +42,7 @@ def prepare():
 
     val_loader = DataLoader(
         val_dataset,
-        batch_size=128,
+        batch_size=256,
         shuffle=False,
         num_workers=4
     )
