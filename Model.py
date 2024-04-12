@@ -30,6 +30,8 @@ if __name__ == "__main__":
     model.train()
 
     image, bbox_s, label_s = next(iter(val_loader))
+    image = image.to(device)
+    label_s = label_s.to(device)
 
     outputs, loss = model(image.to(device), bbox_s, label_s)
     loss.backward()

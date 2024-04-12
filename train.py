@@ -30,7 +30,7 @@ def train_epoch(
 
         optimizer.zero_grad()
         with autocast():
-            outputs, loss_cls = model(images, bboxes, labels)
+            _, loss_cls = model(images, bboxes, labels)
 
         scaler.scale(loss_cls).backward()
         scaler.step(optimizer)
@@ -38,14 +38,9 @@ def train_epoch(
 
         total_loss += loss_cls.item()
         loop.set_postfix(loss=loss_cls.item())
-
         current = epoch * len(dataloader) + i
 
         if i % 10 == 0:
-            predictions = (torch.sigmoid(outputs) > 0.5).float()
-            correct = (predictions == labels).float().mean()
-
-            writer.add_scalar("Accuracy", 100 * correct, current)
             writer.add_scalar("Loss/Class", loss_cls.item(), current)
 
     return total_loss / len(dataloader)
@@ -66,13 +61,27 @@ def validate_epoch(
             images = images.to(device)
             labels = labels.to(device)
 
-            _, loss_cls = model(images, bboxes, labels)
+            outputs, loss_cls = model(images, bboxes, labels)
 
             total_loss += loss_cls.item()
             loop.set_postfix(loss=loss_cls.item())
+            current = epoch * len(dataloader) + i
 
             if i % 10 == 0:
-                writer.add_scalar("Loss/Validation Batch", loss_cls.item(), epoch * len(dataloader) + i)
+                outputs = torch.sigmoid(outputs)
+
+                writer.add_text(
+                    "Label/Prediction",
+                    f"{outputs[0]}",
+                    current
+                )
+                writer.add_text(
+                    "Label/Target",
+                    f"{labels[0]}",
+                    current
+                )
+
+                writer.add_scalar("Loss/Validation Batch", loss_cls.item(), current)
 
     return total_loss / len(dataloader)
 
