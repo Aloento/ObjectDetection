@@ -95,7 +95,7 @@ def main():
     scaler = GradScaler()
 
     start_epoch = load_checkpoint(model, optimizer, scheduler)
-    epochs = 1000
+    epochs = 200
     writer = SummaryWriter()
 
     for epoch in tqdm(range(start_epoch, epochs), desc="Epochs", position=0):
