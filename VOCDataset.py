@@ -24,10 +24,11 @@ class VOCDataset(Dataset):
                 self.dataset.append(VOCItem(line.strip()))
 
         self.transform = A.Compose([
-            A.RandomScale(scale_limit=0.5, p=0.5),
+            A.RandomScale(),
             A.HorizontalFlip(p=0.5),
             A.VerticalFlip(p=0.5),
             A.Resize(640, 640),
+            A.Normalize(),
             ToTensorV2(),
         ], bbox_params=A.BboxParams(format="pascal_voc"))
 

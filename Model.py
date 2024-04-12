@@ -1,7 +1,6 @@
 from torch import nn, Tensor
 
 from ComputeLoss import ComputeLoss
-from FCLayer import FCLayer
 from FeatureLayer import FeatureLayer
 
 
@@ -9,14 +8,11 @@ class Model(nn.Module):
     def __init__(self):
         super(Model, self).__init__()
 
-        self.fe = FeatureLayer()
-        self.out = FCLayer(512)
+        self.res = FeatureLayer()
         self.loss = ComputeLoss()
 
     def forward(self, x: Tensor, bboxes: list[Tensor]) -> (Tensor, dict[str, Tensor], dict[str, Tensor]):
-        x = self.fe(x)
-        x = self.out(x)
-
+        x = self.res(x)
         x = self.loss(x, bboxes)
         return x
 

@@ -1,7 +1,7 @@
 import torch
 from torch import nn, Tensor
 from torch.cuda import is_available
-from torchvision.ops import sigmoid_focal_loss
+from torch.nn import BCEWithLogitsLoss
 
 from VOCDataset import catalogs
 
@@ -9,7 +9,7 @@ from VOCDataset import catalogs
 class ComputeLoss(nn.Module):
     def __init__(self):
         super().__init__()
-        self.focal = sigmoid_focal_loss
+        self.bce = BCEWithLogitsLoss()
         self.device = "cuda" if is_available() else "cpu"
 
     def forward(self, predictions: Tensor, bboxes: list[Tensor]):
@@ -21,6 +21,6 @@ class ComputeLoss(nn.Module):
         ]
 
         label_matrix = torch.stack(label_matrix).to(self.device)
-        loss_cls = self.focal(predictions, label_matrix, reduction="mean")
+        loss_cls = self.bce(predictions, label_matrix, reduction="mean")
 
         return loss_cls

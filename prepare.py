@@ -18,20 +18,18 @@ def prepare():
     train_dataset = VOCDataset("train")
     train_loader = DataLoader(
         train_dataset,
-        batch_size=50,
+        batch_size=32,
         shuffle=True,
         num_workers=8,
-        drop_last=True,
         collate_fn=custom_collate_fn
     )
 
     val_dataset = VOCDataset("val")
     val_loader = DataLoader(
         val_dataset,
-        batch_size=50,
+        batch_size=32,
         shuffle=False,
         num_workers=8,
-        drop_last=True,
         collate_fn=custom_collate_fn
     )
 
