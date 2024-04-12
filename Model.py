@@ -11,9 +11,9 @@ class Model(nn.Module):
         self.res = FeatureLayer()
         self.loss = ComputeLoss()
 
-    def forward(self, x: Tensor, bboxes: list[Tensor]) -> (Tensor, dict[str, Tensor], dict[str, Tensor]):
+    def forward(self, x: Tensor, bboxes: list[Tensor], labels: list[Tensor]):
         x = self.res(x)
-        x = self.loss(x, bboxes)
+        x = self.loss(x, bboxes, labels)
         return x
 
 
@@ -28,9 +28,9 @@ if __name__ == "__main__":
     model = Model().to(device)
     model.train()
 
-    image, boxes = next(iter(val_loader))
+    image, bbox_s, label_s = next(iter(val_loader))
 
-    loss_cls = model(image.to(device), boxes)
+    loss_cls = model(image.to(device), bbox_s, label_s)
     loss_cls.backward()
 
     print("Loss Class:", loss_cls)

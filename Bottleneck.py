@@ -1,5 +1,7 @@
 from torch import nn, Tensor
 
+from DeformableConv2d import DeformableConv2d
+
 
 class Bottleneck(nn.Module):
     expansion = 4
@@ -17,7 +19,7 @@ class Bottleneck(nn.Module):
         )
         self.bn1 = nn.BatchNorm2d(num_features=out_channels)
 
-        self.conv2 = nn.Conv2d(
+        self.conv2 = DeformableConv2d(
             in_channels=out_channels,
             out_channels=out_channels,
             kernel_size=3,
@@ -25,6 +27,7 @@ class Bottleneck(nn.Module):
             padding=1,
             bias=False
         )
+
         self.bn2 = nn.BatchNorm2d(num_features=out_channels)
 
         self.conv3 = nn.Conv2d(
