@@ -25,7 +25,7 @@ def train_epoch(
     for i, (images, bboxes, labels) in enumerate(loop):
         optimizer.zero_grad()
         with autocast():
-            _, loss_cls = model(images, bboxes, labels)
+            outputs, loss_cls = model(images, bboxes, labels)
 
         scaler.scale(loss_cls).backward()
         scaler.step(optimizer)
@@ -37,6 +37,10 @@ def train_epoch(
         current = epoch * len(dataloader) + i
 
         if i % 10 == 0:
+            predictions = (torch.sigmoid(outputs) > 0.5).float()
+            correct = (predictions == labels).float().mean()
+
+            writer.add_scalar("Accuracy", 100 * correct, current)
             writer.add_scalar("Loss/Class", loss_cls.item(), current)
 
     return total_loss / len(dataloader)

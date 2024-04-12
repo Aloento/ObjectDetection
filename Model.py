@@ -18,6 +18,7 @@ class Model(nn.Module):
 
 
 if __name__ == "__main__":
+    import torch
     from prepare import prepare
     from torch.cuda import is_available
 
@@ -30,7 +31,10 @@ if __name__ == "__main__":
 
     image, bbox_s, label_s = next(iter(val_loader))
 
-    _, loss = model(image.to(device), bbox_s, label_s)
+    outputs, loss = model(image.to(device), bbox_s, label_s)
     loss.backward()
-
     print("Loss Class:", loss)
+
+    predictions = (torch.sigmoid(outputs) > 0.5).float()
+    correct = (predictions == label_s).float().mean()
+    print("Accuracy:", 100 * correct)
