@@ -30,7 +30,7 @@ if __name__ == "__main__":
 
     inputs, labels = next(iter(val_loader))
 
-    loss_cls = model(inputs.to(device), labels.to(device))
+    _, loss_cls = model(inputs.to(device), labels.to(device))
     loss_cls.backward()
 
     print("Loss Class:", loss_cls)
