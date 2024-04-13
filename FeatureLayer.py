@@ -1,7 +1,7 @@
 from torch import nn, Tensor
 from torch.nn import Sequential
 
-from Darknet import ConvBlock, ResBlock
+from ResNet import ConvBlock, ResBlock
 
 
 class FeatureLayer(nn.Module):

@@ -1,6 +1,6 @@
 from torch import nn
 
-from Darknet import ConvBlock
+from ResNet import ConvBlock
 
 
 class ExtractBlock(nn.Module):
@@ -19,7 +19,7 @@ class ExtractBlock(nn.Module):
             out_channels=out_channels * 2,
             kernel_size=3,
             stride=1,
-            dcn=False
+            dcn=True
         )
         self.conv3 = ConvBlock(
             in_channels=out_channels * 2,
@@ -33,7 +33,7 @@ class ExtractBlock(nn.Module):
             out_channels=out_channels * 2,
             kernel_size=3,
             stride=1,
-            dcn=False
+            dcn=True
         )
         self.conv5 = ConvBlock(
             in_channels=out_channels * 2,
@@ -51,3 +51,14 @@ class ExtractBlock(nn.Module):
         x = self.conv5(x)
 
         return x
+
+
+if __name__ == "__main__":
+    from torchsummary import summary
+    from torch import randn
+
+    model = ExtractBlock(1024, 512)
+    summary(model, (1024, 13, 13), device="cpu")
+
+    out = randn(1, 1024, 13, 13)
+    print(model(out).shape)
