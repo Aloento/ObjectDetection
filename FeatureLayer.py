@@ -99,6 +99,7 @@ class FeatureLayer(nn.Module):
         x8_2 = self.x8_seq2(x8_1)
         x4 = self.x4_seq(x8_2)
 
+        # x8, x16, x32
         return x8_1, x8_2, x4
 
 
