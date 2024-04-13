@@ -108,7 +108,6 @@ class Model(nn.Module):
         medium = self.decode(medium, 1)
         shallow = self.decode(shallow, 0)
 
-        # ->
         batch_size = deep.shape[0]
         properties = deep.shape[-1]
 
@@ -124,7 +123,7 @@ class Model(nn.Module):
 if __name__ == "__main__":
     import torch
 
-    t = torch.randn(1, 3, 416, 416)
+    t = torch.randn(2, 3, 416, 416)
     model = Model()
     l, m, s = model(t)
 
