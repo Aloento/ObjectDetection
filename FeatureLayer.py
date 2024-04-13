@@ -112,4 +112,6 @@ if __name__ == "__main__":
 
     x = torch.randn((1, 3, 416, 416))
     y1, y2, y3 = model(x)
+
+    # [1, 256, 52, 52], [1, 512, 26, 26], [1, 1024, 13, 13]
     print(y1.shape, y2.shape, y3.shape)
