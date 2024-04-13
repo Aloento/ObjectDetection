@@ -1,9 +1,7 @@
-import torch
 from torch import nn, Tensor
 from torch.nn import Sequential
 
 from Darknet import ConvBlock, ResBlock
-from VOCDataset import catalogs
 
 
 class FeatureLayer(nn.Module):
@@ -102,3 +100,15 @@ class FeatureLayer(nn.Module):
         x4 = self.x4_seq(x8_2)
 
         return x8_1, x8_2, x4
+
+
+if __name__ == "__main__":
+    from torchsummary import summary
+    import torch
+
+    model = FeatureLayer()
+    summary(model, (3, 416, 416), device="cpu")
+
+    x = torch.randn((1, 3, 416, 416))
+    y1, y2, y3 = model(x)
+    print(y1.shape, y2.shape, y3.shape)
