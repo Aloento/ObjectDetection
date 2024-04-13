@@ -1,4 +1,5 @@
 import numpy as np
+import torch
 from torch import nn, Tensor
 
 from ExtractBlock import ExtractBlock
@@ -121,8 +122,6 @@ class Model(nn.Module):
 
 
 if __name__ == "__main__":
-    import torch
-
     t = torch.randn(2, 3, 416, 416)
     model = Model()
     l, m, s = model(t)
@@ -131,11 +130,12 @@ if __name__ == "__main__":
     print(l.shape, m.shape, s.shape)
 
     d_l = model.decode(l, 2)
-    print(d_l.shape)
+    print(d_l.shape)  # [2, 13, 13, 3, 25]
     d_m = model.decode(m, 1)
-    print(d_m.shape)
+    print(d_m.shape)  # [2, 26, 26, 3, 25]
     d_s = model.decode(s, 0)
-    print(d_s.shape)
+    print(d_s.shape)  # [2, 52, 52, 3, 25]
 
+    # [1, 10647, 25]
     pred = model.predict(l, m, s)
     print(pred.shape)

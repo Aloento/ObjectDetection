@@ -41,9 +41,10 @@ def prepare():
     val_dataset = VOCDataset("val")
     val_loader = DataLoader(
         val_dataset,
-        batch_size=100,
+        # batch_size=100,
+        batch_size=10,
         shuffle=False,
-        num_workers=8,
+        # num_workers=8,
         collate_fn=collate_fn
     )
 

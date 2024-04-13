@@ -61,7 +61,7 @@ def process_boxes(pred_boxes: Tensor):
         keep = torchvision.ops.nms(
             torch.tensor(coordinates),
             torch.tensor(scores),
-            0.5
+            0.45
         ).numpy()
 
         coordinates, scores, classes = coordinates[keep], scores[keep], classes[keep]
