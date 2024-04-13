@@ -1,4 +1,6 @@
 import numpy as np
+import torch
+import torchvision
 from torch import Tensor
 
 
@@ -56,6 +58,14 @@ def process_boxes(pred_boxes: Tensor):
         mask = np.logical_and(scales_mask, scores_mask)
 
         coordinates, scores, classes = coordinates[mask], scores[mask], classes[mask]
+        keep = torchvision.ops.nms(
+            torch.tensor(coordinates),
+            torch.tensor(scores),
+            0.5
+        ).numpy()
+
+        coordinates, scores, classes = coordinates[keep], scores[keep], classes[keep]
+
         result.append(
             np.concatenate([coordinates, scores[:, np.newaxis], classes[:, np.newaxis]], axis=-1)
         )
