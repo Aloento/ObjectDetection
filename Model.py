@@ -100,6 +100,26 @@ class Model(nn.Module):
 
         return torch.concat([pred_xy_wh, pred_conf, pred_prob], dim=-1)
 
+    def predict(self, deep: Tensor, medium: Tensor, shallow: Tensor):
+        # decode 13x13, 26x26, 52x52
+        # [batch_size, num_anchors, height, width] ->
+        # [batch_size, height, width, num_bbox, properties per bbox]
+        deep = self.decode(deep, 2)
+        medium = self.decode(medium, 1)
+        shallow = self.decode(shallow, 0)
+
+        # ->
+        batch_size = deep.shape[0]
+        properties = deep.shape[-1]
+
+        pred_deep = deep.view(batch_size, -1, properties)
+        pred_medium = medium.view(batch_size, -1, properties)
+        pred_shallow = shallow.view(batch_size, -1, properties)
+
+        # [batch_size, num_bbox, properties per bbox]
+        predictions = torch.cat([pred_shallow, pred_medium, pred_deep], dim=1)
+        return predictions
+
 
 if __name__ == "__main__":
     import torch
@@ -110,3 +130,13 @@ if __name__ == "__main__":
 
     # [1, 75, 13, 13], [1, 75, 26, 26], [1, 75, 52, 52]
     print(l.shape, m.shape, s.shape)
+
+    d_l = model.decode(l, 2)
+    print(d_l.shape)
+    d_m = model.decode(m, 1)
+    print(d_m.shape)
+    d_s = model.decode(s, 0)
+    print(d_s.shape)
+
+    pred = model.predict(l, m, s)
+    print(pred.shape)
