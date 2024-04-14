@@ -165,4 +165,3 @@ class YoloLoss(nn.Module):
             no_obj_mask: Tensor
     ):
         batch_size = len(target)
-        
