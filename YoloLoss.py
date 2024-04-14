@@ -93,115 +93,57 @@ class YoloLoss(nn.Module):
     ):
         batch_size = len(target)
 
-        no_obj_mask = torch.ones(  # [batch_size, 3 bbox, height, width]
-            batch_size,
-            len(self.anchors_mask[layer_type]),
-            height,
-            width,
-            requires_grad=False
+        no_obj_mask = torch.ones(
+            batch_size, len(self.anchors_mask[layer_type]), height, width
         )
 
-        small_obj_loss_scale = torch.zeros(  # [batch_size, 3 bbox, height, width]
-            batch_size,
-            len(self.anchors_mask[layer_type]),
-            height,
-            width,
-            requires_grad=False
+        small_obj_loss_scale = torch.zeros(
+            batch_size, len(self.anchors_mask[layer_type]), height, width
         )
 
-        ground_truth = torch.zeros(  # [batch_size, 3 bbox, height, width, bbox_attrs]
-            batch_size,
-            len(self.anchors_mask[layer_type]),
-            height,
-            width,
-            self.bbox_attrs,
-            requires_grad=False
+        ground_truth = torch.zeros(
+            batch_size, len(self.anchors_mask[layer_type]), height, width, self.bbox_attrs
         )
 
-        for batch in range(batch_size):
-            if target[batch].shape[0] == 0:
+        anchors = torch.tensor(scaled_anchors)
+        anchor_boxes = torch.cat([torch.zeros_like(anchors), anchors], dim=1)
+
+        for batch, single_target in enumerate(target):
+            if single_target.numel() == 0:
                 continue
 
-            current = target[batch]
+            # Calculate scaled positions and sizes
+            bbox_scaled = torch.zeros_like(single_target)
+            bbox_scaled[:, [0, 2]] = single_target[:, [0, 2]] * width
+            bbox_scaled[:, [1, 3]] = single_target[:, [1, 3]] * height
+            bbox_scaled[:, 4] = single_target[:, 4]
 
-            # map to feature layer
-            current_target = torch.zeros_like(current)  # [num_bbox, bbox_attrs]
-            current_target[:, [0, 2]] = current[:, [0, 2]] * width
-            current_target[:, [1, 3]] = current[:, [1, 3]] * height
-            current_target[:, 4] = current[:, 4]
-            current_target = current_target.cpu()
+            # Calculate iou and get best anchors
+            truth_boxes = torch.cat([torch.zeros_like(bbox_scaled[:, :2]), bbox_scaled[:, 2:4]], dim=1)
+            best_anchors = torch.argmax(calculate_iou(truth_boxes, anchor_boxes), dim=-1)
 
-            # [num_bbox, 4]
-            # (0, 0, width, height)
-            truth_bbox = torch.cat(
-                (
-                    torch.zeros((current_target.shape[0], 2)),
-                    current_target[:, 2:4]
-                ),
-                dim=1
-            ).float()  # type: Tensor
-
-            # [9, 4]
-            # (0, 0, anchor_width, anchor_height)
-            anchor = torch.cat(
-                (
-                    torch.zeros((len(scaled_anchors), 2)),
-                    torch.tensor(scaled_anchors)
-                ),
-                dim=1
-            ).float()
-
-            # index of the best fit anchors
-            best_anchors = torch.argmax(
-                calculate_iou(truth_bbox, anchor),
-                dim=-1
-            )
-
-            for i, anchor_i in enumerate(best_anchors):  # type: int, Tensor
-                if anchor_i not in self.anchors_mask[layer_type]:
+            for i, best_anchor in enumerate(best_anchors):  # type: int, Tensor
+                if best_anchor not in self.anchors_mask[layer_type]:
                     continue
 
-                which_anchor = self.anchors_mask[layer_type].index(anchor_i)
-                which_grid_height = torch.floor(current_target[i, 1]).long()
-                which_grid_width = torch.floor(current_target[i, 0]).long()
+                anchor_idx = self.anchors_mask[layer_type].index(best_anchor)
+                grid_y = int(bbox_scaled[i, 1])
+                grid_x = int(bbox_scaled[i, 0])
 
-                current_class = current_target[i, 4].long()
+                no_obj_mask[batch, anchor_idx, grid_y, grid_x] = 0
 
-                # no target feature point
-                no_obj_mask[
-                    batch, which_anchor, which_grid_height, which_grid_width
-                ] = 0
+                ground_truth[batch, anchor_idx, grid_y, grid_x, :4] = torch.tensor([
+                    bbox_scaled[i, 0] - grid_x,  # dx
+                    bbox_scaled[i, 1] - grid_y,  # dy
+                    torch.log(bbox_scaled[i, 2] / anchors[best_anchor, 0]),  # tw
+                    torch.log(bbox_scaled[i, 3] / anchors[best_anchor, 1])  # th
+                ])
 
-                ground_truth[
-                    batch, which_anchor, which_grid_height, which_grid_width, 0
-                ] = current_target[i, 0] - which_grid_width.float()
+                ground_truth[batch, anchor_idx, grid_y, grid_x, 4] = 1  # objectness
+                ground_truth[batch, anchor_idx, grid_y, grid_x, 5 + int(bbox_scaled[i, 4])] = 1  # class label
 
-                ground_truth[
-                    batch, which_anchor, which_grid_height, which_grid_width, 1
-                ] = current_target[i, 1] - which_grid_height.float()
-
-                ground_truth[
-                    batch, which_anchor, which_grid_height, which_grid_width, 2
-                ] = torch.log(
-                    current_target[i, 2] / scaled_anchors[anchor_i][0]
+                small_obj_loss_scale[batch, anchor_idx, grid_y, grid_x] = (
+                        bbox_scaled[i, 2] * bbox_scaled[i, 3] / (height * width)
                 )
 
-                ground_truth[
-                    batch, which_anchor, which_grid_height, which_grid_width, 3
-                ] = torch.log(
-                    current_target[i, 3] / scaled_anchors[anchor_i][1]
-                )
-
-                ground_truth[
-                    batch, which_anchor, which_grid_height, which_grid_width, 4
-                ] = 1
-
-                ground_truth[
-                    batch, which_anchor, which_grid_height, which_grid_width, 5 + current_class
-                ] = 1
-
-                small_obj_loss_scale[
-                    batch, which_anchor, which_grid_height, which_grid_width
-                ] = current_target[i, 2] * current_target[i, 3] / height / width
-
-            return ground_truth, no_obj_mask, small_obj_loss_scale
+        return ground_truth, no_obj_mask, small_obj_loss_scale
