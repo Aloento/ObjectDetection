@@ -1,5 +1,6 @@
 import torch
 from torch import Tensor
+from torchvision.ops import box_iou
 
 
 def calculate_iou(bbox_a: Tensor, bbox_b: Tensor) -> Tensor:
@@ -19,19 +20,5 @@ def calculate_iou(bbox_a: Tensor, bbox_b: Tensor) -> Tensor:
         1
     )
 
-    # 计算交叉区域的边界坐标
-    max_xy = torch.min(bbox_a[:, None, 2:], bbox_b[:, 2:])
-    min_xy = torch.max(bbox_a[:, None, :2], bbox_b[:, :2])
-    inter = torch.clamp(max_xy - min_xy, min=0)
-    inter_area = inter[..., 0] * inter[..., 1]
-
-    # 计算每个框的面积
-    area_a = ((bbox_a[:, 2] - bbox_a[:, 0]) * (bbox_a[:, 3] - bbox_a[:, 1]))
-    area_b = ((bbox_b[:, 2] - bbox_b[:, 0]) * (bbox_b[:, 3] - bbox_b[:, 1]))
-
-    # 计算并集面积
-    union_area = area_a[:, None] + area_b - inter_area
-
-    # 计算 IoU
-    iou = inter_area / union_area
+    iou = box_iou(bbox_a, bbox_b)
     return iou

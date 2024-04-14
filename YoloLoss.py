@@ -1,6 +1,7 @@
 import torch
 from torch import nn, Tensor
 
+from BBoxOverlaps import calculate_iou
 from VOCDataset import catalogs
 
 
@@ -117,11 +118,11 @@ class YoloLoss(nn.Module):
             requires_grad=False
         )
 
-        for b in range(batch_size):
-            if target[b].shape[0] == 0:
+        for batch in range(batch_size):
+            if target[batch].shape[0] == 0:
                 continue
 
-            current = target[b]
+            current = target[batch]
 
             # map to feature layer
             current_target = torch.zeros_like(current)  # [num_bbox, bbox_attrs]
@@ -132,7 +133,7 @@ class YoloLoss(nn.Module):
 
             # [num_bbox, 4]
             # (0, 0, width, height)
-            current_bbox = torch.cat(
+            truth_bbox = torch.cat(
                 (
                     torch.zeros((current_target.shape[0], 2)),
                     current_target[:, 2:4]
@@ -149,3 +150,58 @@ class YoloLoss(nn.Module):
                 ),
                 dim=1
             ).float()
+
+            # index of the best fit anchors
+            best_anchors = torch.argmax(
+                calculate_iou(truth_bbox, anchor),
+                dim=-1
+            )
+
+            for i, anchor_i in enumerate(best_anchors):  # type: int, Tensor
+                if anchor_i not in self.anchors_mask[layer_type]:
+                    continue
+
+                which_anchor = self.anchors_mask[layer_type].index(anchor_i)
+                which_grid_height = torch.floor(current_target[i, 1]).long()
+                which_grid_width = torch.floor(current_target[i, 0]).long()
+
+                current_class = current_target[i, 4].long()
+
+                # no target feature point
+                no_obj_mask[
+                    batch, which_anchor, which_grid_height, which_grid_width
+                ] = 0
+
+                ground_truth[
+                    batch, which_anchor, which_grid_height, which_grid_width, 0
+                ] = current_target[i, 0] - which_grid_width.float()
+
+                ground_truth[
+                    batch, which_anchor, which_grid_height, which_grid_width, 1
+                ] = current_target[i, 1] - which_grid_height.float()
+
+                ground_truth[
+                    batch, which_anchor, which_grid_height, which_grid_width, 2
+                ] = torch.log(
+                    current_target[i, 2] / scaled_anchors[anchor_i][0]
+                )
+
+                ground_truth[
+                    batch, which_anchor, which_grid_height, which_grid_width, 3
+                ] = torch.log(
+                    current_target[i, 3] / scaled_anchors[anchor_i][1]
+                )
+
+                ground_truth[
+                    batch, which_anchor, which_grid_height, which_grid_width, 4
+                ] = 1
+
+                ground_truth[
+                    batch, which_anchor, which_grid_height, which_grid_width, 5 + current_class
+                ] = 1
+
+                small_obj_loss_scale[
+                    batch, which_anchor, which_grid_height, which_grid_width
+                ] = current_target[i, 2] * current_target[i, 3] / height / width
+
+            return ground_truth, no_obj_mask, small_obj_loss_scale
