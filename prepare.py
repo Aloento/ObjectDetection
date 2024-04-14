@@ -2,28 +2,20 @@ import torch
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
-from VOCDataset import VOCDataset, catalogs
+from VOCDataset import VOCDataset
 
 
-def collate_fn(batch):
+def collate_fn(batch) -> tuple[torch.Tensor, list[torch.Tensor]]:
     images = []
     bboxes = []
-    labels = []
 
     for image, bbox_s in batch:
         images.append(image)
-
-        unique_labels = bbox_s[:, 4].unique(sorted=True).long()
-        hot_labels = torch.zeros((1, len(catalogs))).scatter_(1, unique_labels.unsqueeze(0), 1.)
-        labels.append(hot_labels.squeeze(0))
-
-        bbox_s = bbox_s[:, :4]
         bboxes.append(bbox_s)
 
     images = torch.stack(images)
-    labels = torch.stack(labels)
 
-    return images, bboxes, labels
+    return images, bboxes,
 
 
 def prepare():

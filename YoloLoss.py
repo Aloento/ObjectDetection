@@ -82,4 +82,70 @@ class YoloLoss(nn.Module):
         # probability of classes
         pred_probs = torch.sigmoid(prediction[..., 5:])  # [batch_size, 3, height, width, num_classes]
 
+    def transform_target(
+            self,
+            target: list[Tensor],
+            layer_type: int,
+            scaled_anchors: list[tuple[float, float]],
+            height: int,
+            width: int
+    ):
+        batch_size = len(target)
 
+        no_obj_mask = torch.ones(  # [batch_size, 3 bbox, height, width]
+            batch_size,
+            len(self.anchors_mask[layer_type]),
+            height,
+            width,
+            requires_grad=False
+        )
+
+        small_obj_loss_scale = torch.zeros(  # [batch_size, 3 bbox, height, width]
+            batch_size,
+            len(self.anchors_mask[layer_type]),
+            height,
+            width,
+            requires_grad=False
+        )
+
+        ground_truth = torch.zeros(  # [batch_size, 3 bbox, height, width, bbox_attrs]
+            batch_size,
+            len(self.anchors_mask[layer_type]),
+            height,
+            width,
+            self.bbox_attrs,
+            requires_grad=False
+        )
+
+        for b in range(batch_size):
+            if target[b].shape[0] == 0:
+                continue
+
+            current = target[b]
+
+            # map to feature layer
+            current_target = torch.zeros_like(current)  # [num_bbox, bbox_attrs]
+            current_target[:, [0, 2]] = current[:, [0, 2]] * width
+            current_target[:, [1, 3]] = current[:, [1, 3]] * height
+            current_target[:, 4] = current[:, 4]
+            current_target = current_target.cpu()
+
+            # [num_bbox, 4]
+            # (0, 0, width, height)
+            current_bbox = torch.cat(
+                (
+                    torch.zeros((current_target.shape[0], 2)),
+                    current_target[:, 2:4]
+                ),
+                dim=1
+            ).float()  # type: Tensor
+
+            # [9, 4]
+            # (0, 0, anchor_width, anchor_height)
+            anchor = torch.cat(
+                (
+                    torch.zeros((len(scaled_anchors), 2)),
+                    torch.tensor(scaled_anchors)
+                ),
+                dim=1
+            ).float()

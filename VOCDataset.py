@@ -2,6 +2,7 @@ import albumentations as A
 import torch
 from albumentations.pytorch import ToTensorV2
 from torch.utils.data import Dataset
+from albumentations.core.bbox_utils import convert_bbox_to_albumentations, convert_bbox_from_albumentations
 
 from VOCImage import VOCItem
 
@@ -30,7 +31,7 @@ class VOCDataset(Dataset):
             A.Resize(416, 416),
             A.Normalize(),
             ToTensorV2(),
-        ], bbox_params=A.BboxParams(format="pascal_voc"))
+        ], bbox_params=A.BboxParams(format="yolo"))
 
     def __len__(self):
         return len(self.dataset)
@@ -41,6 +42,16 @@ class VOCDataset(Dataset):
 
         for obj in item.annotation.objects:
             bbox = obj.bndbox.get()
+            bbox = convert_bbox_to_albumentations(
+                bbox,
+                "pascal_voc",
+                416, 416,
+            )
+            bbox = convert_bbox_from_albumentations(
+                bbox,
+                "yolo",
+                416, 416,
+            )
             bbox += [catalogs.index(obj.name)]
             bboxes.append(bbox)
 
