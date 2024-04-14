@@ -47,7 +47,7 @@ class YoloLoss(nn.Module):
     ):
         pass
 
-    def compute_loss(self, pred: Tensor, layer_type: int, target: Tensor):
+    def compute_loss(self, pred: Tensor, layer_type: int, target: list[Tensor]):
         batch_size, _, height, width = pred.shape
 
         # 13 -> 32 pix, 26 -> 16 pix, 52 -> 8 pix
@@ -82,6 +82,10 @@ class YoloLoss(nn.Module):
 
         # probability of classes
         pred_probs = torch.sigmoid(prediction[..., 5:])  # [batch_size, 3, height, width, num_classes]
+
+        ground_truth, no_obj_mask, small_obj_loss_scale = self.transform_target(
+            target, layer_type, scaled_anchors, height, width
+        )
 
     def transform_target(
             self,
@@ -147,3 +151,18 @@ class YoloLoss(nn.Module):
                 )
 
         return ground_truth, no_obj_mask, small_obj_loss_scale
+
+    def get_ignore_mask(
+            self,
+            pred_xs: Tensor,
+            pred_ys: Tensor,
+            pred_ws: Tensor,
+            pred_hs: Tensor,
+            target: list[Tensor],
+            scaled_anchors: list[tuple[float, float]],
+            height: int,
+            width: int,
+            no_obj_mask: Tensor
+    ):
+        batch_size = len(target)
+        
