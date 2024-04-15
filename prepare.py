@@ -5,15 +5,16 @@ from tqdm import tqdm
 from VOCDataset import VOCDataset
 
 
-def collate_fn(batch) -> tuple[torch.Tensor, list[torch.Tensor]]:
+def collate_fn(batch) -> tuple[torch.Tensor, torch.Tensor]:
     images = []
     bboxes = []
 
     for image, bbox_s in batch:
         images.append(image)
-        bboxes.append(bbox_s)
+        bboxes.append(bbox_s[0])
 
     images = torch.stack(images)
+    bboxes = torch.stack(bboxes)
 
     return images, bboxes
 
