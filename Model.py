@@ -13,7 +13,8 @@ class Model(nn.Module):
 
     def forward(self, x: Tensor, labels: Tensor) -> (Tensor, dict[str, Tensor], dict[str, Tensor]):
         outputs = self.res(x)
-        loss = self.ce(outputs, labels)
+        target_class = labels[:, -1].long()
+        loss = self.ce(outputs, target_class)
         return outputs, loss
 
 

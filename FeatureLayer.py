@@ -3,8 +3,7 @@ from torch import nn, Tensor
 from torch.nn import Sequential
 
 from Bottleneck import Bottleneck
-
-classes = ['plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck']
+from VOCDataset import catalogs
 
 
 class FeatureLayer(nn.Module):
@@ -30,7 +29,7 @@ class FeatureLayer(nn.Module):
         self.res_block4 = self.make_res_block(512, 3, 2)
 
         self.avg_pool = nn.AdaptiveAvgPool2d((1, 1))
-        self.fc = nn.Linear(512 * Bottleneck.expansion, len(classes))
+        self.fc = nn.Linear(512 * Bottleneck.expansion, len(catalogs))
 
     def make_res_block(self, planes: int, blocks: int, stride: int = 1) -> Sequential:
         down_sample = None
