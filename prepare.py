@@ -23,10 +23,10 @@ def prepare():
     train_dataset = VOCDataset("train")
     train_loader = DataLoader(
         train_dataset,
-        # batch_size=200,
-        batch_size=2,
+        batch_size=110,
+        # batch_size=2,
+        num_workers=8,
         shuffle=True,
-        # num_workers=8,
         collate_fn=collate_fn,
         drop_last=True,
         pin_memory=True
@@ -35,10 +35,10 @@ def prepare():
     val_dataset = VOCDataset("val")
     val_loader = DataLoader(
         val_dataset,
-        # batch_size=100,
-        batch_size=2,
+        batch_size=50,
+        # batch_size=2,
+        num_workers=4,
         shuffle=False,
-        # num_workers=8,
         collate_fn=collate_fn
     )
 

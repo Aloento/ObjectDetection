@@ -72,8 +72,9 @@ def validate_epoch(
 
             if i % 10 == 0:
                 _, predicted = torch.max(outputs.data, 1)
-                total += labels.size(0)
-                correct += (predicted == labels).sum().item()
+                target_class = labels[:, -1].long()
+                total += target_class.size(0)
+                correct += (predicted == target_class).sum().item()
 
                 writer.add_scalar("Accuracy/Validation Batch", 100 * correct / total, epoch * len(dataloader) + i)
                 writer.add_scalar("Loss/Validation Batch", loss_cls.item(), epoch * len(dataloader) + i)
