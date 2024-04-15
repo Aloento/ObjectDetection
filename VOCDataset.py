@@ -21,7 +21,10 @@ class VOCDataset(Dataset):
 
         with open(set_path) as f:
             for line in f:
-                self.dataset.append(VOCItem(line.strip()))
+                i = VOCItem(line.strip())
+
+                if len(i.annotation.objects) == 1:
+                    self.dataset.append(i)
 
         self.transform = A.Compose([
             # A.RandomScale(),

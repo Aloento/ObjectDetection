@@ -1,50 +1,44 @@
-import torchvision
+import torch
 from torch.utils.data import DataLoader
-from torchvision.transforms import transforms
 from tqdm import tqdm
 
+from VOCDataset import VOCDataset
 
-transform_train = transforms.Compose([
-    transforms.RandomHorizontalFlip(),
-    transforms.RandomCrop(32, padding=4),
-    transforms.ToTensor(),
-    transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
-])
 
-transform_test = transforms.Compose([
-    transforms.ToTensor(),
-    transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
-])
+def collate_fn(batch) -> tuple[torch.Tensor, list[torch.Tensor]]:
+    images = []
+    bboxes = []
+
+    for image, bbox_s in batch:
+        images.append(image)
+        bboxes.append(bbox_s)
+
+    images = torch.stack(images)
+
+    return images, bboxes
 
 
 def prepare():
-    train_dataset = torchvision.datasets.CIFAR10(
-        root='CIFAR',
-        train=True,
-        download=False,
-        transform=transform_train
-    )
-
+    train_dataset = VOCDataset("train")
     train_loader = DataLoader(
         train_dataset,
-        batch_size=512,
+        # batch_size=200,
+        batch_size=2,
         shuffle=True,
-        num_workers=4,
+        # num_workers=8,
+        collate_fn=collate_fn,
+        drop_last=True,
         pin_memory=True
     )
 
-    val_dataset = torchvision.datasets.CIFAR10(
-        root='CIFAR',
-        train=False,
-        download=False,
-        transform=transform_test
-    )
-
+    val_dataset = VOCDataset("val")
     val_loader = DataLoader(
         val_dataset,
-        batch_size=256,
+        # batch_size=100,
+        batch_size=1,
         shuffle=False,
-        num_workers=4
+        # num_workers=8,
+        collate_fn=collate_fn
     )
 
     return train_loader, val_loader
