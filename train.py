@@ -31,7 +31,7 @@ def train_epoch(
         with autocast():
             _, (loss_cls, loss_bbox) = model(images, targets)
 
-        loss_total = loss_cls + loss_bbox
+        loss_total = 2 * loss_cls + loss_bbox
         total_loss += loss_total.item()
 
         scaler.scale(loss_total).backward()
@@ -68,7 +68,7 @@ def validate_epoch(
 
             (cls, bbox), (loss_cls, loss_bbox) = model(images, targets)
 
-            loss_total = loss_cls + loss_bbox
+            loss_total = 2 * loss_cls + loss_bbox
             total_loss += loss_total.item()
 
             loop.set_postfix(
@@ -114,7 +114,7 @@ def main():
     scaler = GradScaler()
 
     start_epoch = load_checkpoint(model, optimizer, scheduler)
-    epochs = 500
+    epochs = 200
     writer = SummaryWriter()
 
     prog = tqdm(range(start_epoch, epochs), desc="Epochs")

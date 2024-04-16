@@ -104,14 +104,16 @@ def load_datasets(statues_dict: dict[str, tuple[int, Image.Image]], bgs_dict: di
 
 def prepare():
     statues, bgs = load_dicts()
-    return load_datasets(statues, bgs)
+    train, val = load_datasets(statues, bgs)
+
+    for _ in tqdm(train):
+        pass
+
+    for _ in tqdm(val):
+        pass
+
+    return train, val
 
 
 if __name__ == "__main__":
-    train, val = prepare()
-
-    for p in tqdm(train):
-        pass
-
-    for p in tqdm(val):
-        pass
+    prepare()
