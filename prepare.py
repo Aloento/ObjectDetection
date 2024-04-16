@@ -25,11 +25,12 @@ def prepare():
         train_dataset,
         batch_size=100,
         # batch_size=2,
-        num_workers=8,
+        num_workers=4,
         shuffle=True,
         collate_fn=collate_fn,
         drop_last=True,
-        pin_memory=True
+        pin_memory=True,
+        persistent_workers=True
     )
 
     val_dataset = VOCDataset("val")
@@ -37,9 +38,11 @@ def prepare():
         val_dataset,
         batch_size=100,
         # batch_size=2,
-        num_workers=4,
+        num_workers=2,
         shuffle=False,
-        collate_fn=collate_fn
+        collate_fn=collate_fn,
+        pin_memory=True,
+        persistent_workers=True
     )
 
     return train_loader, val_loader
