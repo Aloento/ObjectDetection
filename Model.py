@@ -1,7 +1,7 @@
+import torchvision.models
 from torch import nn, Tensor
 
-from DetectionHead import DetectionHead
-from FeatureLayer import FeatureLayer
+from VOCDataset import catalogs
 
 
 class Model(nn.Module):
@@ -9,23 +9,39 @@ class Model(nn.Module):
         super(Model, self).__init__()
         self.num_anchor = 1
 
-        self.res = FeatureLayer()
-        self.bbox = DetectionHead()
+        self.res = torchvision.models.resnet101(pretrained=True)
+        self.res = nn.Sequential(*list(self.res.children())[:-2])
+
+        self.regressor = nn.Sequential(
+            nn.Conv2d(2048, 256, 3, 1, 1),
+            nn.ReLU(),
+            nn.AdaptiveAvgPool2d((1, 1)),
+            nn.Flatten(),
+            nn.Linear(256, 4)
+        )
+
+        self.class_head = nn.Sequential(
+            nn.AdaptiveAvgPool2d((1, 1)),
+            nn.Flatten(),
+            nn.Linear(2048, len(catalogs))
+        )
 
         self.ce = nn.CrossEntropyLoss()
         self.mse = nn.MSELoss()
 
     def forward(self, x: Tensor, labels: Tensor) -> (Tensor, dict[str, Tensor], dict[str, Tensor]):
-        class_head, feats = self.res(x)
-        bbox_head = self.bbox(feats)
+        feat = self.res(x)
+
+        bbox = self.regressor(feat)
+        cls = self.class_head(feat)
 
         target_class = labels[:, -1].long()
-        cls_loss = self.ce(class_head, target_class)
+        cls_loss = self.ce(cls, target_class)
 
         target_bbox = labels[:, :-1]
-        bbox_loss = self.mse(bbox_head, target_bbox)
+        bbox_loss = self.mse(bbox, target_bbox)
 
-        return class_head, cls_loss, bbox_loss
+        return cls_loss, bbox_loss
 
 
 if __name__ == "__main__":

@@ -10,25 +10,27 @@ catalogs = ['aeroplane', 'bicycle', 'bird', 'boat', 'bottle', 'bus', 'car', 'cat
 
 
 class VOCDataset(Dataset):
-    sets_path = "VOC/ImageSets/Main/"
-
     def __init__(
             self,
-            image_set: str = "train",  # train, val, trainval
+            image_set: str = "train",  # train, val
     ):
         self.dataset: list[VOCItem] = []
-        set_path = VOCDataset.sets_path + image_set + ".txt"
+        set_paths = [("2007", f"VOC/2007/ImageSets/Main/{image_set}.txt")]
 
-        with open(set_path) as f:
-            for line in f:
-                i = VOCItem(line.strip())
+        if image_set == "train":
+            set_paths.append(("2012", "VOC/2012/ImageSets/Main/trainval.txt"))
 
-                if len(i.annotation.objects) == 1:
-                    self.dataset.append(i)
+        for year, set_path in set_paths:
+            with open(set_path) as f:
+                for line in f:
+                    i = VOCItem(year, line.strip())
+
+                    if len(i.annotation.objects) == 1:
+                        self.dataset.append(i)
 
         self.transform = A.Compose([
             A.Resize(224, 224),
-            A.Normalize(),
+            # A.Normalize(),
             ToTensorV2(),
         ], bbox_params=A.BboxParams(format="coco"))
 
@@ -38,7 +40,7 @@ class VOCDataset(Dataset):
                 A.HorizontalFlip(p=0.5),
                 A.VerticalFlip(p=0.5),
                 A.Resize(224, 224),
-                A.Normalize(),
+                # A.Normalize(),
                 ToTensorV2(),
             ], bbox_params=A.BboxParams(format="coco"))
 

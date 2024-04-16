@@ -21,7 +21,7 @@ def train_epoch(
 ) -> float:
     model.train()
     total_loss = 0  # type: float
-    loop = tqdm(dataloader, leave=True, position=1, desc="Training")
+    loop = tqdm(dataloader, desc="Training")
 
     for i, (images, labels) in enumerate(loop):  # type: int, (torch.Tensor, torch.Tensor)
         images = images.to(device)
@@ -29,15 +29,15 @@ def train_epoch(
 
         optimizer.zero_grad()
         with autocast():
-            _, loss_cls, loss_bbox = model(images, labels)
+            loss_cls, loss_bbox = model(images, labels)
 
         loss_total = loss_cls + loss_bbox
+        total_loss += loss_total.item()
 
         scaler.scale(loss_total).backward()
         scaler.step(optimizer)
         scaler.update()
 
-        total_loss += loss_total.item()
         loop.set_postfix(
             loss_cls=loss_cls.item(),
             loss_box=loss_bbox.item()
@@ -59,35 +59,24 @@ def validate_epoch(
 ) -> float:
     model.eval()
     total_loss = 0  # type: float
-    loop = tqdm(dataloader, leave=True, position=2, desc="Validation")
-
-    correct = 0
-    total = 0
+    loop = tqdm(dataloader, desc="Validation")
 
     with torch.no_grad():
         for i, (images, labels) in enumerate(loop):  # type: int, (torch.Tensor, torch.Tensor)
             images = images.to(device)
             labels = labels.to(device)
 
-            outputs, loss_cls, loss_bbox = model(images, labels)
+            loss_cls, loss_bbox = model(images, labels)
 
             loss_total = loss_cls + loss_bbox
             total_loss += loss_total.item()
 
-            _, predicted = torch.max(outputs.data, 1)
-            target_class = labels[:, -1].long()
-            total += target_class.size(0)
-            correct += (predicted == target_class).sum().item()
-            accuracy = 100 * correct / total
-
             loop.set_postfix(
                 loss_cls=loss_cls.item(),
-                loss_box=loss_bbox.item(),
-                accuracy=accuracy
+                loss_box=loss_bbox.item()
             )
 
             current = epoch * len(dataloader) + i
-            writer.add_scalar("Accuracy/Validation", accuracy, current)
             writer.add_scalar("Loss/Validation/Class", loss_cls.item(), current)
             writer.add_scalar("Loss/Validation/Box", loss_bbox.item(), current)
 
@@ -111,17 +100,24 @@ def main():
     epochs = 1000
     writer = SummaryWriter()
 
-    for epoch in tqdm(range(start_epoch, epochs), desc="Epochs", position=0):
+    prog = tqdm(range(start_epoch, epochs), desc="Epochs")
+
+    for epoch in prog:
         train_loss = train_epoch(model, train_loader, optimizer, device, scaler, writer, epoch)
 
         val_loss = validate_epoch(model, val_loader, device, writer, epoch)
         scheduler.step(val_loss)
         writer.add_scalar("Learning Rate", optimizer.param_groups[0]["lr"], epoch)
 
+        prog.set_postfix(
+            train=train_loss,
+            val=val_loss
+        )
+
         print(f"\nEpoch {epoch + 1}/{epochs} - Training Loss: {train_loss:.4f}, Validation Loss: {val_loss:.4f}")
 
         if epoch % 10 == 0:
-            save_checkpoint(model, optimizer, scheduler, epoch + 1)
+            save_checkpoint(model, optimizer, scheduler, epoch)
 
     writer.close()
 

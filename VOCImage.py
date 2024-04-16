@@ -47,17 +47,13 @@ class VOCAnnotation:
 
 
 class VOCItem:
-    base_path = "VOC/"
-    anno_path = base_path + "Annotations/"
-    images_path = base_path + "JPEGImages/"
-
     annotation_dict: dict[str, VOCAnnotation] = {}
 
-    def __init__(self, image_id: str):
+    def __init__(self, year: str, image_id: str):
         self.image_id = image_id
 
-        self.image_path = f"{VOCItem.images_path}{image_id}.jpg"
-        self.annotation_path = f"{VOCItem.anno_path}{image_id}.xml"
+        self.image_path = f"VOC/{year}/JPEGImages/{image_id}.jpg"
+        self.annotation_path = f"VOC/{year}/Annotations/{image_id}.xml"
 
         self.annotation = self.parse_annotation()
 
