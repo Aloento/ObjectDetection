@@ -38,8 +38,8 @@ def load_checkpoint(
     if latest_epoch > 0:
         checkpoint = torch.load(f"checkpoints/{latest_epoch}.pth")
         model.load_state_dict(checkpoint["model_state_dict"])
-        optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
-        scheduler.load_state_dict(checkpoint["scheduler_state_dict"])
+        # optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
+        # scheduler.load_state_dict(checkpoint["scheduler_state_dict"])
 
         print(f"Loaded checkpoint from epoch {latest_epoch}")
         return latest_epoch + 1

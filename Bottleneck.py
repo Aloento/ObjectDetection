@@ -1,7 +1,4 @@
 from torch import nn, Tensor
-from torchvision.ops import DeformConv2d
-
-from DeformableConv2d import DeformableConv2d
 
 
 class Bottleneck(nn.Module):
@@ -20,7 +17,7 @@ class Bottleneck(nn.Module):
         )
         self.bn1 = nn.BatchNorm2d(num_features=out_channels)
 
-        self.conv2 = DeformableConv2d(
+        self.conv2 = nn.Conv2d(
             in_channels=out_channels,
             out_channels=out_channels,
             kernel_size=3,
@@ -42,7 +39,7 @@ class Bottleneck(nn.Module):
         self.bn3 = nn.BatchNorm2d(num_features=out_channels * self.expansion)
 
         self.relu = nn.ReLU(inplace=True)
-        self.down_sample = down_sample
+        self.downsample = down_sample
 
     def forward(self, x: Tensor) -> Tensor:
         identity = x.clone()
@@ -58,8 +55,8 @@ class Bottleneck(nn.Module):
         out = self.conv3(out)
         out = self.bn3(out)
 
-        if self.down_sample is not None:
-            identity = self.down_sample(x)
+        if self.downsample is not None:
+            identity = self.downsample(x)
 
         out += identity
         out = self.relu(out)
