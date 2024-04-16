@@ -121,7 +121,7 @@ def main():
         print(f"\nEpoch {epoch + 1}/{epochs} - Training Loss: {train_loss:.4f}, Validation Loss: {val_loss:.4f}")
 
         if epoch % 10 == 0:
-            save_checkpoint(model, optimizer, scheduler, epoch)
+            save_checkpoint(model, optimizer, scheduler, epoch + 1)
 
     writer.close()
 
