@@ -17,7 +17,7 @@ class ObjectDetectionDataset(Dataset):
             bgs_dict: dict[str, tuple[int, Image.Image]],
             dataset_type: str = "train",
             no_generate: bool = False,
-            image_size: int = 224
+            image_size: int = 640
     ):
         self.statues_dict = statues_dict
         self.bgs_dict = bgs_dict
@@ -27,7 +27,7 @@ class ObjectDetectionDataset(Dataset):
         self.image_size = image_size
 
         self.transform = A.Compose([
-            A.Resize(image_size, image_size),
+            A.Resize(224, 224),
             ToTensorV2(),
         ], bbox_params=A.BboxParams(format="coco"))
 
@@ -36,7 +36,7 @@ class ObjectDetectionDataset(Dataset):
             self.transform = A.Compose([
                 A.HorizontalFlip(p=0.5),
                 A.VerticalFlip(p=0.5),
-                A.Resize(image_size, image_size),
+                A.Resize(224, 224),
                 ToTensorV2()
             ], bbox_params=A.BboxParams(format="coco"))
         elif dataset_type == "val":
