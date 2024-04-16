@@ -25,6 +25,7 @@ class Model(nn.Module):
         self.class_head = nn.Sequential(
             nn.AdaptiveAvgPool2d((1, 1)),
             nn.Flatten(),
+            nn.Identity(),
             nn.Linear(2048, 17)
         )
 

@@ -77,7 +77,7 @@ def load_datasets(statues_dict: dict[str, tuple[int, Image.Image]], bgs_dict: di
     train_dataset = ObjectDetectionDataset(statues_dict, bgs_dict, dataset_type="train")
     train_loader = DataLoader(
         train_dataset,
-        batch_size=200,
+        batch_size=125,
         shuffle=True,
         drop_last=True,
         num_workers=4,

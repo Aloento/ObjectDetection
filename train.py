@@ -94,6 +94,7 @@ def validate_epoch(
                 img_tensor=image,
                 box_tensor=pred_box.unsqueeze(0),
                 labels=[f"{pred_label} / {pred_score:.2f} - {targ_label}"],
+                global_step=current
             )
 
     return total_loss / len(dataloader)
@@ -113,7 +114,7 @@ def main():
     scaler = GradScaler()
 
     start_epoch = load_checkpoint(model, optimizer, scheduler)
-    epochs = 1000
+    epochs = 500
     writer = SummaryWriter()
 
     prog = tqdm(range(start_epoch, epochs), desc="Epochs")
