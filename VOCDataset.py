@@ -27,13 +27,20 @@ class VOCDataset(Dataset):
                     self.dataset.append(i)
 
         self.transform = A.Compose([
-            # A.RandomScale(),
-            # A.HorizontalFlip(p=0.5),
-            # A.VerticalFlip(p=0.5),
-            A.Resize(416, 416),
+            A.Resize(224, 224),
             A.Normalize(),
             ToTensorV2(),
         ], bbox_params=A.BboxParams(format="pascal_voc"))
+
+        if image_set == "train":
+            self.transform = A.Compose([
+                A.RandomScale(),
+                A.HorizontalFlip(p=0.5),
+                A.VerticalFlip(p=0.5),
+                A.Resize(224, 224),
+                A.Normalize(),
+                ToTensorV2(),
+            ], bbox_params=A.BboxParams(format="pascal_voc"))
 
     def __len__(self):
         return len(self.dataset)

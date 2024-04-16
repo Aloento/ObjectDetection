@@ -39,9 +39,7 @@ def train_epoch(
         loop.set_postfix(loss=loss_cls.item())
 
         current = epoch * len(dataloader) + i
-
-        if i % 10 == 0:
-            writer.add_scalar("Loss/Class", loss_cls.item(), current)
+        writer.add_scalar("Loss/Class", loss_cls.item(), current)
 
     return total_loss / len(dataloader)
 
@@ -68,16 +66,17 @@ def validate_epoch(
             outputs, loss_cls = model(images, labels)
 
             total_loss += loss_cls.item()
-            loop.set_postfix(loss=loss_cls.item())
 
-            if i % 10 == 0:
-                _, predicted = torch.max(outputs.data, 1)
-                target_class = labels[:, -1].long()
-                total += target_class.size(0)
-                correct += (predicted == target_class).sum().item()
+            _, predicted = torch.max(outputs.data, 1)
+            target_class = labels[:, -1].long()
+            total += target_class.size(0)
+            correct += (predicted == target_class).sum().item()
+            accuracy = 100 * correct / total
 
-                writer.add_scalar("Accuracy/Validation Batch", 100 * correct / total, epoch * len(dataloader) + i)
-                writer.add_scalar("Loss/Validation Batch", loss_cls.item(), epoch * len(dataloader) + i)
+            loop.set_postfix(loss=loss_cls.item(), accuracy=accuracy)
+
+            writer.add_scalar("Accuracy/Validation Batch", accuracy, epoch * len(dataloader) + i)
+            writer.add_scalar("Loss/Validation Batch", loss_cls.item(), epoch * len(dataloader) + i)
 
     return total_loss / len(dataloader)
 
@@ -96,7 +95,7 @@ def main():
     scaler = GradScaler()
 
     start_epoch = load_checkpoint(model, optimizer, scheduler)
-    epochs = 200
+    epochs = 1000
     writer = SummaryWriter()
 
     for epoch in tqdm(range(start_epoch, epochs), desc="Epochs", position=0):
