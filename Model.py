@@ -1,21 +1,27 @@
 from torch import nn, Tensor
 from torch.nn import CrossEntropyLoss
 
+from DetectionHead import DetectionHead
 from FeatureLayer import FeatureLayer
 
 
 class Model(nn.Module):
     def __init__(self):
         super(Model, self).__init__()
+        self.num_anchor = 1
 
-        self.res = FeatureLayer()
+        self.class_head = FeatureLayer()
+        self.bbox_head = DetectionHead()
+
         self.ce = CrossEntropyLoss()
 
     def forward(self, x: Tensor, labels: Tensor) -> (Tensor, dict[str, Tensor], dict[str, Tensor]):
-        outputs = self.res(x)
+        class_head, feats = self.class_head(x)
+        bbox_head = self.bbox_head(feats)
+
         target_class = labels[:, -1].long()
-        loss = self.ce(outputs, target_class)
-        return outputs, loss
+        loss = self.ce(class_head, target_class)
+        return class_head, loss
 
 
 if __name__ == "__main__":
@@ -29,9 +35,9 @@ if __name__ == "__main__":
     model = Model().to(device)
     model.train()
 
-    inputs, labels = next(iter(val_loader))
+    inputs, labs = next(iter(val_loader))
 
-    _, loss_cls = model(inputs.to(device), labels.to(device))
+    _, loss_cls = model(inputs.to(device), labs.to(device))
     loss_cls.backward()
 
     print("Loss Class:", loss_cls)

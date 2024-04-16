@@ -53,7 +53,7 @@ class FeatureLayer(nn.Module):
 
         return Sequential(*layers)
 
-    def forward(self, x: Tensor) -> Tensor:
+    def forward(self, x: Tensor) -> (Tensor, Tensor):
         out = self.conv1(x)
         out = self.bn1(out)
         out = self.relu(out)
@@ -62,10 +62,10 @@ class FeatureLayer(nn.Module):
         out = self.layer1(out)
         out = self.layer2(out)
         out = self.layer3(out)
-        out = self.layer4(out)
+        res = self.layer4(out)
 
-        out = self.avgpool(out)
+        out = self.avgpool(res)
         out = torch.flatten(out, 1)
         out = self.fc(out)
 
-        return out
+        return out, res
