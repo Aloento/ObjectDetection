@@ -1,8 +1,8 @@
 import os
 
-import mmh3
 from PIL import Image
 from torch.utils.data import DataLoader
+from tqdm import tqdm
 
 from ObjectDetectionDataset import ObjectDetectionDataset
 
@@ -75,16 +75,31 @@ def load_dicts():
 
 def load_datasets(statues_dict: dict[str, tuple[int, Image.Image]], bgs_dict: dict[str, tuple[int, Image.Image]]):
     train_dataset = ObjectDetectionDataset(statues_dict, bgs_dict, dataset_type="train")
-    train_loader = DataLoader(train_dataset, batch_size=5000 // 100, shuffle=True, num_workers=8, pin_memory=True)
+    train_loader = DataLoader(
+        train_dataset,
+        batch_size=200,
+        shuffle=True,
+        drop_last=True,
+        num_workers=4,
+        pin_memory=True,
+        persistent_workers=True
+    )
 
     val_dataset = ObjectDetectionDataset(statues_dict, bgs_dict, dataset_type="val")
-    val_loader = DataLoader(val_dataset, batch_size=1000 // 100, shuffle=False, num_workers=4)
+    val_loader = DataLoader(
+        val_dataset,
+        batch_size=100,
+        shuffle=False,
+        num_workers=2,
+        pin_memory=True,
+        persistent_workers=True
+    )
 
-    test_dataset = ObjectDetectionDataset(statues_dict, bgs_dict, dataset_type="test")
-    test_loader = DataLoader(test_dataset, batch_size=200 // 50, shuffle=False, num_workers=2)
+    # test_dataset = ObjectDetectionDataset(statues_dict, bgs_dict, dataset_type="test")
+    # test_loader = DataLoader(test_dataset, batch_size=200 // 50, shuffle=False, num_workers=2)
 
     print("Data prepared")
-    return train_loader, val_loader, test_loader
+    return train_loader, val_loader
 
 
 def prepare():
@@ -93,4 +108,10 @@ def prepare():
 
 
 if __name__ == "__main__":
-    prepare()
+    train, val = prepare()
+
+    for p in tqdm(train):
+        pass
+
+    for p in tqdm(val):
+        pass

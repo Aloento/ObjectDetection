@@ -6,6 +6,8 @@ Dataset/
 Backgrounds/
 runs/
 checkpoints/
+VOC/
+CIFAR/
 
 # User-specific stuff
 .idea/**/workspace.xml

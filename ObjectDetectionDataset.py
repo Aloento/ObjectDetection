@@ -6,7 +6,6 @@ import numpy as np
 import torch
 from PIL import Image
 from albumentations.pytorch.transforms import ToTensorV2
-from torch.nn.functional import one_hot
 from torch.utils.data import Dataset
 from tqdm import tqdm
 
@@ -18,7 +17,7 @@ class ObjectDetectionDataset(Dataset):
             bgs_dict: dict[str, tuple[int, Image.Image]],
             dataset_type: str = "train",
             no_generate: bool = False,
-            image_size: int = 640
+            image_size: int = 224
     ):
         self.statues_dict = statues_dict
         self.bgs_dict = bgs_dict
@@ -28,24 +27,18 @@ class ObjectDetectionDataset(Dataset):
         self.image_size = image_size
 
         self.transform = A.Compose([
-            # A.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+            A.Resize(image_size, image_size),
             ToTensorV2(),
-        ], bbox_params=A.BboxParams(format="albumentations"))
+        ], bbox_params=A.BboxParams(format="coco"))
 
         if dataset_type == "train":
             self.num_samples = 5000
-            # self.transform = A.Compose([
-            #     A.HorizontalFlip(p=0.5),
-            #     A.VerticalFlip(p=0.5),
-            #     A.RandomRotate90(p=0.5),
-            #     A.RandomBrightnessContrast(p=0.2),
-            #     A.RandomGamma(p=0.2),
-            #     A.ColorJitter(p=0.2),
-            #     A.ElasticTransform(p=0.2),
-            #     A.GaussNoise(p=0.2),
-            #     A.Resize(image_size, image_size),
-            #     ToTensorV2()
-            # ], bbox_params=A.BboxParams(format="albumentations"))
+            self.transform = A.Compose([
+                A.HorizontalFlip(p=0.5),
+                A.VerticalFlip(p=0.5),
+                A.Resize(image_size, image_size),
+                ToTensorV2()
+            ], bbox_params=A.BboxParams(format="coco"))
         elif dataset_type == "val":
             self.num_samples = 1000
         elif dataset_type == "test":
@@ -83,19 +76,9 @@ class ObjectDetectionDataset(Dataset):
             else:
                 bg_img = bg_img.resize((self.image_size, self.image_size))
 
-            if random.random() < 0.2:
-                bg_path = os.path.join(self.dataset_path, f"{i:05d}.webp")
-                bg_img.save(bg_path)
-
-                with open(os.path.join(self.dataset_path, f"{i:05d}.txt"), "w") as f:
-                    f.write("0 0 0 0 0")
-
-                self.data.append((bg_path, [0, 0, 0, 0, 0]))
-                continue
-
             statue_id, statue_img = random.choice(list(self.statues_dict.values()))  # type: int, Image.Image
 
-            statue_height = random.randint(100, 150)
+            statue_height = random.randint(150, 200)
             ratio = statue_height / statue_img.height
             statue_width = round(statue_img.width * ratio)
             statue_img = statue_img.resize((statue_width, statue_height))
@@ -114,11 +97,12 @@ class ObjectDetectionDataset(Dataset):
             combined_img_path = os.path.join(self.dataset_path, f"{i:05d}.webp")
             combined_img.save(combined_img_path)
 
+            # [x_min, y_min, width, height, class_id]
             bbox = [
-                rand_x / bg_width,
-                rand_y / bg_height,
-                (rand_x + statue_width) / bg_width,
-                (rand_y + statue_height) / bg_height,
+                rand_x,
+                rand_y,
+                statue_width,
+                statue_height,
                 statue_id
             ]
             bbox_str = " ".join(map(str, bbox))
@@ -142,21 +126,14 @@ class ObjectDetectionDataset(Dataset):
 
     def __getitem__(self, idx: int) -> tuple[torch.Tensor, torch.Tensor]:
         img_path, bbox = self.data[idx]
-        no_obj = sum(bbox) == 0
 
         img = Image.open(img_path).convert("RGB")
         img = np.array(img, dtype=np.float32) / 255.0
 
-        transformed = self.transform(image=img, bboxes=[[0, 0, 1, 1, 0] if no_obj else bbox])
+        transformed = self.transform(image=img, bboxes=[bbox])
         img = transformed["image"]
 
         bbox = transformed["bboxes"][0]
-        one_hot_id = np.zeros(17) if no_obj else one_hot(
-            torch.tensor(bbox[4]).long(),
-            num_classes=17
-        )
-
-        bbox = np.append(bbox, one_hot_id)
-        bbox = torch.tensor(bbox, dtype=torch.float16)
+        bbox = torch.tensor(bbox, dtype=torch.float32)
 
         return img, bbox
