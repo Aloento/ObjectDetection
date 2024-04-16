@@ -5,8 +5,28 @@ from torch.utils.data import Dataset
 
 from VOCImage import VOCItem
 
-catalogs = ['aeroplane', 'bicycle', 'bird', 'boat', 'bottle', 'bus', 'car', 'cat', 'chair', 'cow', 'diningtable',
-            'dog', 'horse', 'motorbike', 'person', 'pottedplant', 'sheep', 'sofa', 'train', 'tvmonitor']
+catalogs = [
+    'aeroplane',  # 0
+    'bicycle',  # 1
+    'bird',  # 2
+    'boat',  # 3
+    'bottle',  # 4
+    'bus',  # 5
+    'car',  # 6
+    'cat',  # 7
+    'chair',  # 8
+    'cow',  # 9
+    'diningtable',  # 10
+    'dog',  # 11
+    'horse',  # 12
+    'motorbike',  # 13
+    'person',  # 14
+    'pottedplant',  # 15
+    'sheep',  # 16
+    'sofa',  # 17
+    'train',  # 18
+    'tvmonitor'  # 19
+]
 
 
 class VOCDataset(Dataset):
@@ -36,7 +56,7 @@ class VOCDataset(Dataset):
 
         if image_set == "train":
             self.transform = A.Compose([
-                A.RandomScale(),
+                # A.RandomScale(),
                 A.HorizontalFlip(p=0.5),
                 A.VerticalFlip(p=0.5),
                 A.Resize(224, 224),

@@ -13,11 +13,15 @@ class Model(nn.Module):
         self.res = nn.Sequential(*list(self.res.children())[:-2])
 
         self.regressor = nn.Sequential(
-            nn.Conv2d(2048, 256, 3, 1, 1),
+            nn.Conv2d(2048, 512, 3, 1, 1),
+            nn.ReLU(),
+            nn.Conv2d(512, 128, 3, 1, 1),
+            nn.ReLU(),
+            nn.Conv2d(128, 32, 3, 1, 1),
             nn.ReLU(),
             nn.AdaptiveAvgPool2d((1, 1)),
             nn.Flatten(),
-            nn.Linear(256, 4)
+            nn.Linear(32, 4)
         )
 
         self.class_head = nn.Sequential(
@@ -41,7 +45,7 @@ class Model(nn.Module):
         target_bbox = labels[:, :-1]
         bbox_loss = self.mse(bbox, target_bbox)
 
-        return cls_loss, bbox_loss
+        return (cls, bbox), (cls_loss, bbox_loss)
 
 
 if __name__ == "__main__":

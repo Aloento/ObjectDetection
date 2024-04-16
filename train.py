@@ -23,13 +23,13 @@ def train_epoch(
     total_loss = 0  # type: float
     loop = tqdm(dataloader, desc="Training")
 
-    for i, (images, labels) in enumerate(loop):  # type: int, (torch.Tensor, torch.Tensor)
+    for i, (images, targets) in enumerate(loop):  # type: int, (torch.Tensor, torch.Tensor)
         images = images.to(device)
-        labels = labels.to(device)
+        targets = targets.to(device)
 
         optimizer.zero_grad()
         with autocast():
-            loss_cls, loss_bbox = model(images, labels)
+            _, (loss_cls, loss_bbox) = model(images, targets)
 
         loss_total = loss_cls + loss_bbox
         total_loss += loss_total.item()
@@ -62,11 +62,11 @@ def validate_epoch(
     loop = tqdm(dataloader, desc="Validation")
 
     with torch.no_grad():
-        for i, (images, labels) in enumerate(loop):  # type: int, (torch.Tensor, torch.Tensor)
+        for i, (images, targets) in enumerate(loop):  # type: int, (torch.Tensor, torch.Tensor)
             images = images.to(device)
-            labels = labels.to(device)
+            targets = targets.to(device)
 
-            loss_cls, loss_bbox = model(images, labels)
+            (cls, bbox), (loss_cls, loss_bbox) = model(images, targets)
 
             loss_total = loss_cls + loss_bbox
             total_loss += loss_total.item()
@@ -79,6 +79,22 @@ def validate_epoch(
             current = epoch * len(dataloader) + i
             writer.add_scalar("Loss/Validation/Class", loss_cls.item(), current)
             writer.add_scalar("Loss/Validation/Box", loss_bbox.item(), current)
+
+            image = images[0]
+            pred_box = bbox[0]
+            pred_box[2] += pred_box[0]
+            pred_box[3] += pred_box[1]
+
+            pred_label = cls[0].argmax().item()
+            pred_score = cls[0].max().item()
+            targ_label = targets[0, -1].item()
+
+            writer.add_image_with_boxes(
+                tag=f'Prediction {i}',
+                img_tensor=image,
+                box_tensor=pred_box.unsqueeze(0),
+                labels=[f"{pred_label} / {pred_score:.2f} - {targ_label}"],
+            )
 
     return total_loss / len(dataloader)
 
