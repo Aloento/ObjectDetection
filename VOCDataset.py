@@ -30,7 +30,7 @@ class VOCDataset(Dataset):
             A.Resize(224, 224),
             A.Normalize(),
             ToTensorV2(),
-        ], bbox_params=A.BboxParams(format="pascal_voc"))
+        ], bbox_params=A.BboxParams(format="coco"))
 
         if image_set == "train":
             self.transform = A.Compose([
@@ -40,7 +40,7 @@ class VOCDataset(Dataset):
                 A.Resize(224, 224),
                 A.Normalize(),
                 ToTensorV2(),
-            ], bbox_params=A.BboxParams(format="pascal_voc"))
+            ], bbox_params=A.BboxParams(format="coco"))
 
     def __len__(self):
         return len(self.dataset)
@@ -51,6 +51,11 @@ class VOCDataset(Dataset):
 
         for obj in item.annotation.objects:
             bbox = obj.bndbox.get()
+            # convert form pascal_voc (x_min, y_min, x_max, y_max)
+            # to coco (x_min, y_min, width, height)
+            bbox[2] -= bbox[0]
+            bbox[3] -= bbox[1]
+
             bbox += [catalogs.index(obj.name)]
             bboxes.append(bbox)
 
@@ -58,6 +63,6 @@ class VOCDataset(Dataset):
         transformed = self.transform(image=image, bboxes=bboxes)
 
         t_image = transformed["image"]  # type: torch.FloatTensor
-        t_bboxes = torch.tensor(transformed["bboxes"])
+        t_bboxes = torch.tensor(transformed["bboxes"], dtype=torch.float32)
 
         return t_image, t_bboxes
