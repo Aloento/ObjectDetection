@@ -29,17 +29,23 @@ def train_epoch(
 
         optimizer.zero_grad()
         with autocast():
-            _, loss_cls = model(images, labels)
+            _, loss_cls, loss_bbox = model(images, labels)
 
-        scaler.scale(loss_cls).backward()
+        loss_total = loss_cls + loss_bbox
+
+        scaler.scale(loss_total).backward()
         scaler.step(optimizer)
         scaler.update()
 
-        total_loss += loss_cls.item()
-        loop.set_postfix(loss=loss_cls.item())
+        total_loss += loss_total.item()
+        loop.set_postfix(
+            loss_cls=loss_cls.item(),
+            loss_box=loss_bbox.item()
+        )
 
         current = epoch * len(dataloader) + i
         writer.add_scalar("Loss/Class", loss_cls.item(), current)
+        writer.add_scalar("Loss/Box", loss_bbox.item(), current)
 
     return total_loss / len(dataloader)
 
@@ -63,9 +69,10 @@ def validate_epoch(
             images = images.to(device)
             labels = labels.to(device)
 
-            outputs, loss_cls = model(images, labels)
+            outputs, loss_cls, loss_bbox = model(images, labels)
 
-            total_loss += loss_cls.item()
+            loss_total = loss_cls + loss_bbox
+            total_loss += loss_total.item()
 
             _, predicted = torch.max(outputs.data, 1)
             target_class = labels[:, -1].long()
@@ -73,10 +80,16 @@ def validate_epoch(
             correct += (predicted == target_class).sum().item()
             accuracy = 100 * correct / total
 
-            loop.set_postfix(loss=loss_cls.item(), accuracy=accuracy)
+            loop.set_postfix(
+                loss_cls=loss_cls.item(),
+                loss_box=loss_bbox.item(),
+                accuracy=accuracy
+            )
 
-            writer.add_scalar("Accuracy/Validation Batch", accuracy, epoch * len(dataloader) + i)
-            writer.add_scalar("Loss/Validation Batch", loss_cls.item(), epoch * len(dataloader) + i)
+            current = epoch * len(dataloader) + i
+            writer.add_scalar("Accuracy/Validation", accuracy, current)
+            writer.add_scalar("Loss/Validation/Class", loss_cls.item(), current)
+            writer.add_scalar("Loss/Validation/Box", loss_bbox.item(), current)
 
     return total_loss / len(dataloader)
 
