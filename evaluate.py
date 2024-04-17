@@ -101,9 +101,9 @@ if __name__ == '__main__':
         else:
             f1[i] = 0
 
-        writer.add_scalar(f"Precision/{i}", precision[i], i)
-        writer.add_scalar(f"Recall/{i}", recall[i], i)
-        writer.add_scalar(f"F1/{i}", f1[i], i)
+        writer.add_scalar(f"Precision", precision[i], i)
+        writer.add_scalar(f"Recall", recall[i], i)
+        writer.add_scalar(f"F1", f1[i], i)
 
         sorted_pred_indices = sorted(
             [idx for idx in range(len(predictions)) if predictions[idx][0] == i],
@@ -141,3 +141,4 @@ if __name__ == '__main__':
 
     mAP = np.mean(list(ap.values()))
     writer.add_scalar("mAP", mAP)
+    writer.close()
