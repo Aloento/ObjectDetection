@@ -39,7 +39,7 @@ class Bottleneck(nn.Module):
         self.bn3 = nn.BatchNorm2d(num_features=out_channels * self.expansion)
 
         self.relu = nn.ReLU(inplace=True)
-        self.downsample = down_sample
+        self.down_sample = down_sample
 
     def forward(self, x: Tensor) -> Tensor:
         identity = x.clone()
@@ -55,8 +55,8 @@ class Bottleneck(nn.Module):
         out = self.conv3(out)
         out = self.bn3(out)
 
-        if self.downsample is not None:
-            identity = self.downsample(x)
+        if self.down_sample is not None:
+            identity = self.down_sample(x)
 
         out += identity
         out = self.relu(out)

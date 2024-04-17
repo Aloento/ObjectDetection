@@ -1,14 +1,13 @@
-import torchvision.models
 from torch import nn, Tensor
+
+from FeatureLayer import FeatureLayer
 
 
 class Model(nn.Module):
     def __init__(self):
         super(Model, self).__init__()
-        self.num_anchor = 1
 
-        self.res = torchvision.models.resnet101(pretrained=True)
-        self.res = nn.Sequential(*list(self.res.children())[:-2])
+        self.res = FeatureLayer()
 
         self.regressor = nn.Sequential(
             nn.Conv2d(2048, 512, 3, 1, 1),
@@ -25,7 +24,6 @@ class Model(nn.Module):
         self.class_head = nn.Sequential(
             nn.AdaptiveAvgPool2d((1, 1)),
             nn.Flatten(),
-            nn.Identity(),
             nn.Linear(2048, 17)
         )
 

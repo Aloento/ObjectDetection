@@ -1,4 +1,5 @@
 import os
+from typing import Union
 
 import torch
 from torch import optim
@@ -10,10 +11,9 @@ def save_checkpoint(
         model: Model,
         optimizer: optim.Optimizer,
         scheduler: optim.lr_scheduler,
-        epoch: int
+        epoch: Union[int, str]
 ):
     torch.save({
-        "epoch": epoch,
         "model_state_dict": model.state_dict(),
         "optimizer_state_dict": optimizer.state_dict(),
         "scheduler_state_dict": scheduler.state_dict()
@@ -45,3 +45,21 @@ def load_checkpoint(
         return latest_epoch + 1
 
     return 0
+
+
+if __name__ == "__main__":
+    m = Model()
+
+    le = 0
+
+    for c in os.listdir("checkpoints"):
+        e = int(c.split(".")[0])
+        if e > le:
+            le = e
+
+    c = torch.load(f"checkpoints/{le}.pth")
+
+    msd = c["model_state_dict"]
+    m.load_state_dict(msd)
+
+    print(m)
