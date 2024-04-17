@@ -1,5 +1,6 @@
 import time
 
+import numpy as np
 import torch
 from torchvision.ops import box_iou
 from torch.utils.tensorboard import SummaryWriter
@@ -62,21 +63,9 @@ if __name__ == '__main__':
             predictions.append((int(pred_label), pred_score, pred_box))
             targets.append((int(targ_label), target_bbox))
 
-    TP: dict[int, int] = {}
-    FP: dict[int, int] = {}
-    FN: dict[int, int] = {}
-
-    precision: dict[int, float] = {}
-    recall: dict[int, float] = {}
-    f1: dict[int, float] = {}
-
-    for i in range(0, 17):
-        TP[i] = 0
-        FP[i] = 0
-        FN[i] = 0
-        precision[i] = 0
-        recall[i] = 0
-        f1[i] = 0
+    TP: dict[int, int] = {i: 0 for i in range(0, 17)}
+    FP: dict[int, int] = {i: 0 for i in range(0, 17)}
+    FN: dict[int, int] = {i: 0 for i in range(0, 17)}
 
     for pred, targ in zip(predictions, targets):
         pred_label, pred_score, pred_box = pred
@@ -91,14 +80,64 @@ if __name__ == '__main__':
         else:
             FN[targ_label] += 1
 
+    precision: dict[int, float] = {}
+    recall: dict[int, float] = {}
+    f1: dict[int, float] = {}
+    ap: dict[int, float] = {}
+
     for i in range(0, 17):
-        precision[i] = TP[i] / (TP[i] + FP[i])
-        recall[i] = TP[i] / (TP[i] + FN[i])
-        f1[i] = 2 * (precision[i] * recall[i]) / (precision[i] + recall[i])
+        if TP[i] + FP[i] > 0:
+            precision[i] = TP[i] / (TP[i] + FP[i])
+        else:
+            precision[i] = 0
+
+        if TP[i] + FN[i] > 0:
+            recall[i] = TP[i] / (TP[i] + FN[i])
+        else:
+            recall[i] = 0
+
+        if precision[i] + recall[i] > 0:
+            f1[i] = 2 * (precision[i] * recall[i]) / (precision[i] + recall[i])
+        else:
+            f1[i] = 0
 
         writer.add_scalar(f"Precision/{i}", precision[i], i)
         writer.add_scalar(f"Recall/{i}", recall[i], i)
         writer.add_scalar(f"F1/{i}", f1[i], i)
 
+        sorted_pred_indices = sorted(
+            [idx for idx in range(len(predictions)) if predictions[idx][0] == i],
+            key=lambda idx: predictions[idx][1],
+            reverse=True
+        )
 
+        cum_TP = 0
+        cum_FP = 0
+        precisions = []
+        recalls = []
 
+        for idx in sorted_pred_indices:
+            pred_label, pred_score, pred_box = predictions[idx]
+            iou = max(
+                box_iou(
+                    pred_box.unsqueeze(0),
+                    targets[idx][1].unsqueeze(0)).item()
+                for idx in range(len(targets))
+                if targets[idx][0] == pred_label
+            )
+
+            if iou > 0.5:
+                cum_TP += 1
+            else:
+                cum_FP += 1
+
+            precisions.append(cum_TP / (cum_TP + cum_FP))
+            recalls.append(cum_TP / TP[i])
+
+        if predictions:
+            ap[i] = sum(precisions) / len(precisions)
+        else:
+            ap[i] = 0
+
+    mAP = np.mean(list(ap.values()))
+    writer.add_scalar("mAP", mAP)
