@@ -95,9 +95,6 @@ def load_datasets(statues_dict: dict[str, tuple[int, Image.Image]], bgs_dict: di
         persistent_workers=True
     )
 
-    # test_dataset = ObjectDetectionDataset(statues_dict, bgs_dict, dataset_type="test")
-    # test_loader = DataLoader(test_dataset, batch_size=200 // 50, shuffle=False, num_workers=2)
-
     print("Data prepared")
     return train_loader, val_loader
 

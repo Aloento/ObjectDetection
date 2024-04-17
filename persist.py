@@ -1,5 +1,5 @@
 import os
-from typing import Union
+from typing import Union, Optional
 
 import torch
 from torch import optim
@@ -10,7 +10,7 @@ from Model import Model
 def save_checkpoint(
         model: Model,
         optimizer: optim.Optimizer,
-        scheduler: optim.lr_scheduler,
+        scheduler: optim.lr_scheduler.ReduceLROnPlateau,
         epoch: Union[int, str]
 ):
     torch.save({
@@ -22,8 +22,8 @@ def save_checkpoint(
 
 def load_checkpoint(
         model: Model,
-        optimizer: optim.Optimizer,
-        scheduler: optim.lr_scheduler
+        optimizer: Optional[optim.Optimizer] = None,
+        scheduler: Optional[optim.lr_scheduler.ReduceLROnPlateau] = None
 ) -> int:
     latest_epoch = 0
 
@@ -38,8 +38,11 @@ def load_checkpoint(
     if latest_epoch > 0:
         checkpoint = torch.load(f"checkpoints/{latest_epoch}.pth")
         model.load_state_dict(checkpoint["model_state_dict"], strict=False)
-        optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
-        scheduler.load_state_dict(checkpoint["scheduler_state_dict"])
+
+        if optimizer is not None:
+            optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
+        if scheduler is not None:
+            scheduler.load_state_dict(checkpoint["scheduler_state_dict"])
 
         print(f"Loaded checkpoint from epoch {latest_epoch}")
         return latest_epoch + 1
