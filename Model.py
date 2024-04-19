@@ -30,7 +30,7 @@ class Model(nn.Module):
         self.ce = nn.CrossEntropyLoss()
         self.mse = nn.MSELoss()
 
-    def forward(self, x: Tensor, labels: Tensor) -> (Tensor, dict[str, Tensor], dict[str, Tensor]):
+    def forward(self, x: Tensor, labels: Tensor):
         feat = self.res(x)
 
         bbox = self.regressor(feat)
